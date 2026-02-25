@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import Script from "next/script";
 import Button from "@/components/ui/Button";
+import GaPageView from "@/components/GaPageView";
 import StickyCtaBar from "@/components/StickyCtaBar";
 import "./globals.css";
 
@@ -14,6 +16,9 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
+const gscVerification = process.env.NEXT_PUBLIC_GSC_VERIFICATION;
 
 export const metadata: Metadata = {
   title: "Spring Dumpsters & Trailers",
@@ -37,6 +42,11 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
   },
   manifest: "/site.webmanifest",
+  verification: gscVerification
+    ? {
+        google: gscVerification,
+      }
+    : undefined,
 };
 
 export default function RootLayout({
@@ -56,6 +66,21 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {gaId ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`window.dataLayer = window.dataLayer || [];
+function gtag(){window.dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${gaId}');`}
+            </Script>
+            <GaPageView gaId={gaId} />
+          </>
+        ) : null}
         <div className="min-h-screen bg-background text-foreground">
           <header className="border-b border-black/10 dark:border-white/15">
             <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">

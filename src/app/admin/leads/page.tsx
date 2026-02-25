@@ -107,6 +107,12 @@ export default async function AdminLeadsPage({
             Local SEO Ops
           </Link>
           <Link
+            href="/admin/metrics"
+            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            Metrics
+          </Link>
+          <Link
             href="/admin/notify"
             className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
           >
