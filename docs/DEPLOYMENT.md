@@ -79,3 +79,13 @@ Set all required variables in Netlify: **Site settings** → **Environment varia
   - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` must be set as a server-side environment variable in Netlify. Do not expose it to client-side code.
 - Apply SQL migrations from `supabase/migrations/` in the Supabase SQL editor (or your migration workflow) before using lead capture and admin reporting routes.
+
+### Twilio SMS Notes
+
+- Configure Twilio env vars in Netlify server environment:
+  - `TWILIO_ACCOUNT_SID`
+  - `TWILIO_AUTH_TOKEN`
+  - `TWILIO_FROM_NUMBER`
+  - `SMS_ENABLED`
+- `SMS_ENABLED` must be `true` to allow live sends. Keep it `false` for dry-run and non-SMS environments.
+- SMS copy must include opt-out language. Use: `Reply STOP to opt out.`

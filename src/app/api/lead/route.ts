@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { isSmsEnabled, normalizePhone, sendSms } from "@/lib/twilio/server";
 
 type LeadPayload = {
   region?: string;
@@ -18,31 +19,6 @@ type LeadPayload = {
   email?: string;
   sms_opt_in?: boolean;
 };
-
-function normalizePhone(input: string): string {
-  const trimmed = input.trim();
-  const hasLeadingPlusOne = trimmed.startsWith("+1");
-  const digits = trimmed.replace(/\D/g, "");
-
-  if (!digits) return "";
-
-  if (hasLeadingPlusOne) {
-    if (digits.startsWith("1")) {
-      return `+1${digits.slice(1)}`;
-    }
-    return `+1${digits}`;
-  }
-
-  if (digits.length === 11 && digits.startsWith("1")) {
-    return `+1${digits.slice(1)}`;
-  }
-
-  if (digits.length === 10) {
-    return `+1${digits}`;
-  }
-
-  return digits;
-}
 
 export async function POST(request: Request) {
   let payload: LeadPayload;
@@ -118,6 +94,15 @@ export async function POST(request: Request) {
         { ok: false, error: "Failed to create lead." },
         { status: 500 },
       );
+    }
+
+    if (payload.sms_opt_in === true && isSmsEnabled()) {
+      sendSms(
+        normalizedPhone,
+        "Request received — we’ll text you when availability opens in your area. Reply STOP to opt out.",
+      ).catch((smsError) => {
+        console.error("Lead confirmation SMS failed", smsError);
+      });
     }
 
     return NextResponse.json({ ok: true, leadId: data.id });

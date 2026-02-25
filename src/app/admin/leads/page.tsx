@@ -87,12 +87,20 @@ export default async function AdminLeadsPage({
     <main className="mx-auto max-w-7xl px-6 py-12">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">Admin Leads</h1>
-        <Link
-          href={exportHref}
-          className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
-        >
-          Export CSV
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/notify"
+            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            Notify Leads
+          </Link>
+          <Link
+            href={exportHref}
+            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            Export CSV
+          </Link>
+        </div>
       </header>
 
       <form method="get" className="mb-6 grid gap-3 rounded-xl border border-black/10 p-4 sm:grid-cols-3 dark:border-white/15">
