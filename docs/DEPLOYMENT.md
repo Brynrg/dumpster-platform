@@ -70,3 +70,12 @@ Configure Redirect Rules so root paths route to region-specific paths:
 ## Environment Variables
 
 Set all required variables in Netlify: **Site settings** → **Environment variables**. See `.env.local.example` for the list of variable names.
+
+### Supabase Notes
+
+- Configure Supabase env vars in Netlify, including:
+  - `SUPABASE_URL`
+  - `SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` must be set as a server-side environment variable in Netlify. Do not expose it to client-side code.
+- Apply SQL migrations from `supabase/migrations/` in the Supabase SQL editor (or your migration workflow) before using lead capture and admin reporting routes.

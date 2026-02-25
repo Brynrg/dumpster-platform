@@ -7,10 +7,19 @@ import { track } from "@/lib/analytics";
 type StoredRequest = {
   region?: string;
   product?: string;
+  street?: string;
+  city?: string;
+  state?: string;
   zip?: string;
+  delivery_date?: string;
+  duration?: string;
+  urgency?: string;
+  material_type?: string;
+  notes?: string;
   name?: string;
   phone?: string;
   email?: string;
+  sms_opt_in?: boolean;
 };
 
 type NotifyForm = {
@@ -72,7 +81,7 @@ export default function UnavailablePage() {
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validate()) return;
 
     track("notify_opt_in", {
@@ -81,29 +90,47 @@ export default function UnavailablePage() {
       zip: request.zip ?? "",
     });
 
-    const lead = {
+    const leadPayload = {
       ...request,
       ...form,
-      created_at: new Date().toISOString(),
+      sms_opt_in: true,
     };
 
-    const rawQueue = localStorage.getItem("lead_queue_v1");
-    let queue: unknown[] = [];
+    try {
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(leadPayload),
+      });
 
-    if (rawQueue) {
-      try {
-        const parsed = JSON.parse(rawQueue);
-        if (Array.isArray(parsed)) {
-          queue = parsed;
-        }
-      } catch {
-        queue = [];
+      const data = (await response.json()) as { ok?: boolean };
+      if (!response.ok || !data.ok) {
+        throw new Error("Lead API failed");
       }
-    }
+      setSuccess(true);
+    } catch {
+      const rawQueue = localStorage.getItem("lead_queue_v1");
+      let queue: unknown[] = [];
 
-    queue.push(lead);
-    localStorage.setItem("lead_queue_v1", JSON.stringify(queue));
-    setSuccess(true);
+      if (rawQueue) {
+        try {
+          const parsed = JSON.parse(rawQueue);
+          if (Array.isArray(parsed)) {
+            queue = parsed;
+          }
+        } catch {
+          queue = [];
+        }
+      }
+
+      queue.push({
+        ...leadPayload,
+        created_at: new Date().toISOString(),
+      });
+      localStorage.setItem("lead_queue_v1", JSON.stringify(queue));
+      console.info("Lead API failed; stored lead in localStorage queue.");
+      setSuccess(true);
+    }
   }
 
   return (
