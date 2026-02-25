@@ -89,6 +89,18 @@ export default async function AdminLeadsPage({
         <h1 className="text-3xl font-semibold tracking-tight">Admin Leads</h1>
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/admin/pricing"
+            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            Pricing Model
+          </Link>
+          <Link
+            href="/admin/disposal"
+            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            Disposal Intel
+          </Link>
+          <Link
             href="/admin/notify"
             className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
           >
