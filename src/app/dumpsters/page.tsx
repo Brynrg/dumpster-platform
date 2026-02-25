@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import TrustBadges from "@/components/TrustBadges";
 import Button from "@/components/ui/Button";
 
 type DumpstersPageProps = {
@@ -33,6 +34,7 @@ export default async function DumpstersPage({
           <Button href={checkHref}>Check Availability</Button>
         </div>
       </section>
+      <TrustBadges />
 
       <section>
         <h2 className="text-2xl font-semibold">Best For</h2>
@@ -42,6 +44,39 @@ export default async function DumpstersPage({
           <li>Large household decluttering projects</li>
           <li>Commercial and construction debris</li>
         </ul>
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-semibold">Choose a Size</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          {[
+            {
+              title: "Dump Trailer",
+              detail: "Driveway-friendly for smaller cleanouts and landscaping.",
+            },
+            {
+              title: "20-Yard Dumpster",
+              detail: "Balanced option for mid-size cleanouts and small remodels.",
+            },
+            {
+              title: "30-Yard Dumpster",
+              detail: "High-capacity option for roofing and larger remodel projects.",
+            },
+          ].map((option) => (
+            <article key={option.title} className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+              <h3 className="font-medium">{option.title}</h3>
+              <p className="mt-2 text-sm text-black/70 dark:text-white/70">{option.detail}</p>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                <Link href="/check" className="underline underline-offset-4">
+                  Check Availability
+                </Link>
+                <Link href="/service-areas" className="underline underline-offset-4">
+                  See Service Areas
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section>
@@ -121,6 +156,60 @@ export default async function DumpstersPage({
         <Link href="/service-areas" className="underline underline-offset-4">
           Explore Service Areas
         </Link>
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-semibold">Top City Service Pages</h2>
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+          <Link href="/service-areas/spring-tx" className="underline underline-offset-4">
+            Spring, TX
+          </Link>
+          <Link href="/service-areas/the-woodlands-tx" className="underline underline-offset-4">
+            The Woodlands, TX
+          </Link>
+          <Link href="/service-areas/cypress-tx" className="underline underline-offset-4">
+            Cypress, TX
+          </Link>
+          <Link href="/service-areas/melbourne-fl" className="underline underline-offset-4">
+            Melbourne, FL
+          </Link>
+          <Link href="/service-areas/palm-bay-fl" className="underline underline-offset-4">
+            Palm Bay, FL
+          </Link>
+          <Link href="/service-areas/rockledge-fl" className="underline underline-offset-4">
+            Rockledge, FL
+          </Link>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-semibold">Common Questions</h2>
+        <div className="mt-4 space-y-2">
+          <details className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+            <summary className="cursor-pointer font-medium">How do I choose between 20-yard and 30-yard?</summary>
+            <p className="mt-2 text-sm text-black/75 dark:text-white/75">
+              The right size depends on debris volume, material type, and project scope. Submit details and availability is confirmed after request submission.
+            </p>
+          </details>
+          <details className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+            <summary className="cursor-pointer font-medium">Can dumpsters be placed in a driveway?</summary>
+            <p className="mt-2 text-sm text-black/75 dark:text-white/75">
+              Driveway placement is common when the access and surface allow safe positioning.
+            </p>
+          </details>
+          <details className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+            <summary className="cursor-pointer font-medium">What materials should I avoid loading?</summary>
+            <p className="mt-2 text-sm text-black/75 dark:text-white/75">
+              Hazardous and regulated waste types are not accepted. Use the request form to confirm material guidance for your project.
+            </p>
+          </details>
+          <details className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+            <summary className="cursor-pointer font-medium">How does scheduling work after submission?</summary>
+            <p className="mt-2 text-sm text-black/75 dark:text-white/75">
+              Requested dates are reviewed and confirmation is sent with the available delivery and pickup window details.
+            </p>
+          </details>
+        </div>
       </section>
     </main>
   );

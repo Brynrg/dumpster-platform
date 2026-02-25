@@ -89,6 +89,20 @@ export default async function CityPage({ params }: CityPageProps) {
         </div>
       </section>
 
+      <section className="rounded-lg border border-black/10 p-5 dark:border-white/15">
+        <h2 className="text-2xl font-semibold">Start Your Request</h2>
+        <p className="mt-3 text-black/75 dark:text-white/75">
+          Share your project timeline and material type to get container guidance
+          and scheduling confirmation for {city.displayName}.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button href={buildCheckUrl(city.regionId)}>Check Availability</Button>
+          <Button href={region.pathPrefix} variant="secondary">
+            View {region.displayName}
+          </Button>
+        </div>
+      </section>
+
       <section>
         <h2 className="text-2xl font-semibold">
           Common Projects in {city.displayName}
@@ -132,30 +146,48 @@ export default async function CityPage({ params }: CityPageProps) {
         </article>
       </section>
 
-      <section className="flex flex-wrap gap-4">
-        <Link href={region.pathPrefix} className="underline underline-offset-4">
-          View {region.displayName} Region Page
-        </Link>
-        <Link href="/dumpsters" className="underline underline-offset-4">
-          Dumpster Options
-        </Link>
-        <Link href="/dump-trailers" className="underline underline-offset-4">
-          Dump Trailer Options
-        </Link>
+      <section>
+        <h2 className="text-2xl font-semibold">Nearby Service Areas</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          {nearbyCities.map((nearbyCity) => (
+            <article
+              key={nearbyCity!.slug}
+              className="rounded-lg border border-black/10 p-4 dark:border-white/15"
+            >
+              <h3 className="font-medium">
+                {nearbyCity!.displayName}, {nearbyCity!.state}
+              </h3>
+              <Link
+                href={`/service-areas/${nearbyCity!.slug}`}
+                className="mt-2 inline-block text-sm underline underline-offset-4"
+              >
+                View service page
+              </Link>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section>
-        <h2 className="text-2xl font-semibold">Nearby Cities</h2>
+        <h2 className="text-2xl font-semibold">Related Services</h2>
         <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
-          {nearbyCities.map((nearbyCity) => (
-            <Link
-              key={nearbyCity!.slug}
-              href={`/service-areas/${nearbyCity!.slug}`}
-              className="underline underline-offset-4"
-            >
-              {nearbyCity!.displayName}, {nearbyCity!.state}
-            </Link>
-          ))}
+          <Link href="/dumpsters" className="underline underline-offset-4">
+            Dumpster Options
+          </Link>
+          <Link href="/dump-trailers" className="underline underline-offset-4">
+            Dump Trailer Options
+          </Link>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-black/10 p-5 dark:border-white/15">
+        <h2 className="text-2xl font-semibold">Ready to Request Service?</h2>
+        <p className="mt-3 text-black/75 dark:text-white/75">
+          Submit your project details for {city.displayName} and we will confirm
+          availability after request review.
+        </p>
+        <div className="mt-4">
+          <Button href={buildCheckUrl(city.regionId)}>Check Availability</Button>
         </div>
       </section>
     </main>

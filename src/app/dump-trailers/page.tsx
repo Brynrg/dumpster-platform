@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import TrustBadges from "@/components/TrustBadges";
 import Button from "@/components/ui/Button";
 
 type DumpTrailersPageProps = {
@@ -33,6 +34,7 @@ export default async function DumpTrailersPage({
           <Button href={checkHref}>Check Availability</Button>
         </div>
       </section>
+      <TrustBadges />
 
       <section>
         <h2 className="text-2xl font-semibold">Best For</h2>
@@ -42,6 +44,39 @@ export default async function DumpTrailersPage({
           <li>Small-to-mid renovation debris</li>
           <li>Projects with limited placement space</li>
         </ul>
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-semibold">Choose a Size</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          {[
+            {
+              title: "Dump Trailer",
+              detail: "Driveway-friendly for smaller cleanouts and landscaping.",
+            },
+            {
+              title: "20-Yard Dumpster",
+              detail: "Mid-size option for cleanouts and small remodel jobs.",
+            },
+            {
+              title: "30-Yard Dumpster",
+              detail: "Large-volume option for roofing and full-scale remodels.",
+            },
+          ].map((option) => (
+            <article key={option.title} className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+              <h3 className="font-medium">{option.title}</h3>
+              <p className="mt-2 text-sm text-black/70 dark:text-white/70">{option.detail}</p>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                <Link href="/check" className="underline underline-offset-4">
+                  Check Availability
+                </Link>
+                <Link href="/service-areas" className="underline underline-offset-4">
+                  See Service Areas
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section>
@@ -120,6 +155,60 @@ export default async function DumpTrailersPage({
         <Link href="/service-areas" className="underline underline-offset-4">
           Explore Service Areas
         </Link>
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-semibold">Top City Service Pages</h2>
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+          <Link href="/service-areas/spring-tx" className="underline underline-offset-4">
+            Spring, TX
+          </Link>
+          <Link href="/service-areas/klein-tx" className="underline underline-offset-4">
+            Klein, TX
+          </Link>
+          <Link href="/service-areas/cypress-tx" className="underline underline-offset-4">
+            Cypress, TX
+          </Link>
+          <Link href="/service-areas/melbourne-fl" className="underline underline-offset-4">
+            Melbourne, FL
+          </Link>
+          <Link href="/service-areas/cocoa-fl" className="underline underline-offset-4">
+            Cocoa, FL
+          </Link>
+          <Link href="/service-areas/viera-fl" className="underline underline-offset-4">
+            Viera, FL
+          </Link>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-semibold">Common Questions</h2>
+        <div className="mt-4 space-y-2">
+          <details className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+            <summary className="cursor-pointer font-medium">When is a dump trailer a better fit?</summary>
+            <p className="mt-2 text-sm text-black/75 dark:text-white/75">
+              Dump trailers are often chosen for driveway-friendly access, dense debris, and projects with tighter placement constraints.
+            </p>
+          </details>
+          <details className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+            <summary className="cursor-pointer font-medium">Can I still request a dumpster from this page?</summary>
+            <p className="mt-2 text-sm text-black/75 dark:text-white/75">
+              Yes, you can compare container options and submit a request based on your project details and location.
+            </p>
+          </details>
+          <details className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+            <summary className="cursor-pointer font-medium">Are weekend projects supported?</summary>
+            <p className="mt-2 text-sm text-black/75 dark:text-white/75">
+              Weekend requests can be submitted in the form, and scheduling is confirmed after request submission.
+            </p>
+          </details>
+          <details className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+            <summary className="cursor-pointer font-medium">What is the next step after submitting?</summary>
+            <p className="mt-2 text-sm text-black/75 dark:text-white/75">
+              Your request is reviewed and followed with confirmation details for container type, timing, and service availability.
+            </p>
+          </details>
+        </div>
       </section>
     </main>
   );
