@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import RegionHero from "@/components/RegionHero";
 import { buildCheckUrl, getRegionById } from "@/lib/regions";
+import { buildLocalBusinessSchema, buildServiceSchema } from "@/lib/schema";
 
 const region = getRegionById("fl-brevard");
 
@@ -18,8 +19,28 @@ const faqQuestions = [
 ];
 
 export default function BrevardCountyRegionPage() {
+  const areaServed = region.cities.map((city) => `${city}, ${region.state}`);
+  const localBusinessSchema = buildLocalBusinessSchema({
+    name: "Brevard County Dumpsters & Trailers",
+    areaServed,
+    url: region.pathPrefix,
+  });
+  const serviceSchema = buildServiceSchema({
+    serviceName: "Dumpster rental and dump trailer rental",
+    areaServed,
+    url: region.pathPrefix,
+  });
+
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
       <RegionHero
         title="Brevard County, FL Dumpster & Dump Trailer Rentals"
         subtitle="Container rental options for residential and commercial cleanup projects throughout Brevard County."
