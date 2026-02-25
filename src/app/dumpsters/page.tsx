@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Canonical from "@/components/Canonical";
 import TrustBadges from "@/components/TrustBadges";
 import Button from "@/components/ui/Button";
 
@@ -11,6 +12,20 @@ export const metadata: Metadata = {
   title: "Dumpster Rentals | 20-Yard & 30-Yard Options",
   description:
     "Explore dumpster rental options, size guidance, accepted materials, and service areas across Texas and Florida.",
+  openGraph: {
+    title: "Dumpster Rentals | 20-Yard & 30-Yard Options",
+    description:
+      "Explore dumpster rental options, size guidance, accepted materials, and service areas across Texas and Florida.",
+    type: "website",
+    images: ["/og.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dumpster Rentals | 20-Yard & 30-Yard Options",
+    description:
+      "Explore dumpster rental options, size guidance, accepted materials, and service areas across Texas and Florida.",
+    images: ["/og.png"],
+  },
 };
 
 export default async function DumpstersPage({
@@ -22,6 +37,7 @@ export default async function DumpstersPage({
 
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
+      <Canonical pathname="/dumpsters" />
       <section className="rounded-xl border border-black/10 p-8 dark:border-white/15">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           Dumpster Rentals

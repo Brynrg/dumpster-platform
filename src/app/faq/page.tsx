@@ -1,10 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Canonical from "@/components/Canonical";
 
 export const metadata: Metadata = {
   title: "Dumpster Rental FAQ | TX & FL Service Areas",
   description:
     "Get answers about dumpster and dump trailer rentals, pricing, permits, placement, sizing, and pickup for local TX and FL service areas.",
+  openGraph: {
+    title: "Dumpster Rental FAQ | TX & FL Service Areas",
+    description:
+      "Get answers about dumpster and dump trailer rentals, pricing, permits, placement, sizing, and pickup for local TX and FL service areas.",
+    type: "website",
+    images: ["/og.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dumpster Rental FAQ | TX & FL Service Areas",
+    description:
+      "Get answers about dumpster and dump trailer rentals, pricing, permits, placement, sizing, and pickup for local TX and FL service areas.",
+    images: ["/og.png"],
+  },
 };
 
 const faqs = [
@@ -83,6 +98,7 @@ const faqs = [
 export default function FaqPage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
+      <Canonical pathname="/faq" />
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
         Dumpster &amp; Dump Trailer FAQ
       </h1>

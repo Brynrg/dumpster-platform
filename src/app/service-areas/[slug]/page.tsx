@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Canonical from "@/components/Canonical";
 import Button from "@/components/ui/Button";
 import { cities, getCityBySlug } from "@/lib/cities";
 import { buildCheckUrl, getRegionById } from "@/lib/regions";
@@ -30,6 +31,18 @@ export async function generateMetadata({
   return {
     title: `Dumpster & Dump Trailer Rentals in ${city.displayName}, ${city.state}`,
     description: `Explore dumpster and dump trailer rental options in ${city.displayName}, ${city.state}, including local project guidance and service area links.`,
+    openGraph: {
+      title: `Dumpster & Dump Trailer Rentals in ${city.displayName}, ${city.state}`,
+      description: `Explore dumpster and dump trailer rental options in ${city.displayName}, ${city.state}, including local project guidance and service area links.`,
+      type: "website",
+      images: ["/og.png"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Dumpster & Dump Trailer Rentals in ${city.displayName}, ${city.state}`,
+      description: `Explore dumpster and dump trailer rental options in ${city.displayName}, ${city.state}, including local project guidance and service area links.`,
+      images: ["/og.png"],
+    },
   };
 }
 
@@ -67,6 +80,7 @@ export default async function CityPage({ params }: CityPageProps) {
 
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
+      <Canonical pathname={`/service-areas/${city.slug}`} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}

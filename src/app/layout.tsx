@@ -19,6 +19,24 @@ export const metadata: Metadata = {
   title: "Spring Dumpsters & Trailers",
   description:
     "Dumpster and dump trailer rentals across Texas and Florida service areas.",
+  openGraph: {
+    title: "Spring Dumpsters & Trailers",
+    description:
+      "Dumpster and dump trailer rentals across Texas and Florida service areas.",
+    type: "website",
+    images: ["/og.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Spring Dumpsters & Trailers",
+    description:
+      "Dumpster and dump trailer rentals across Texas and Florida service areas.",
+    images: ["/og.png"],
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

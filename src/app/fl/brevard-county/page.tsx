@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Canonical from "@/components/Canonical";
 import RegionHero from "@/components/RegionHero";
 import TrustBadges from "@/components/TrustBadges";
 import { buildCheckUrl, getRegionById } from "@/lib/regions";
@@ -11,6 +12,20 @@ export const metadata: Metadata = {
   title: "Dumpster & Dump Trailer Rentals in Brevard County, FL",
   description:
     "Request dumpster and dump trailer rentals in Brevard County, FL and nearby cities.",
+  openGraph: {
+    title: "Dumpster & Dump Trailer Rentals in Brevard County, FL",
+    description:
+      "Request dumpster and dump trailer rentals in Brevard County, FL and nearby cities.",
+    type: "website",
+    images: ["/og.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dumpster & Dump Trailer Rentals in Brevard County, FL",
+    description:
+      "Request dumpster and dump trailer rentals in Brevard County, FL and nearby cities.",
+    images: ["/og.png"],
+  },
 };
 
 const faqItems = [
@@ -51,6 +66,7 @@ export default function BrevardCountyRegionPage() {
 
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
+      <Canonical pathname="/fl/brevard-county" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}

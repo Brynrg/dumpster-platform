@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  # Optional pass-through placeholders.
+  # Configure these in Netlify UI when needed.
+  NEXT_PUBLIC_SITE_NAME = "${NEXT_PUBLIC_SITE_NAME}"
+  NEXT_PUBLIC_DEFAULT_REGION = "${NEXT_PUBLIC_DEFAULT_REGION}"
+  NEXT_PUBLIC_ANALYTICS_ID = "${NEXT_PUBLIC_ANALYTICS_ID}"

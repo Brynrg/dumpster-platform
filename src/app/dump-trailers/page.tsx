@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Canonical from "@/components/Canonical";
 import TrustBadges from "@/components/TrustBadges";
 import Button from "@/components/ui/Button";
 
@@ -11,6 +12,20 @@ export const metadata: Metadata = {
   title: "Dump Trailer Rentals | TX & FL Service Areas",
   description:
     "Find dump trailer rental options for cleanouts, landscaping, and renovation debris across our Texas and Florida service areas.",
+  openGraph: {
+    title: "Dump Trailer Rentals | TX & FL Service Areas",
+    description:
+      "Find dump trailer rental options for cleanouts, landscaping, and renovation debris across our Texas and Florida service areas.",
+    type: "website",
+    images: ["/og.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dump Trailer Rentals | TX & FL Service Areas",
+    description:
+      "Find dump trailer rental options for cleanouts, landscaping, and renovation debris across our Texas and Florida service areas.",
+    images: ["/og.png"],
+  },
 };
 
 export default async function DumpTrailersPage({
@@ -22,6 +37,7 @@ export default async function DumpTrailersPage({
 
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
+      <Canonical pathname="/dump-trailers" />
       <section className="rounded-xl border border-black/10 p-8 dark:border-white/15">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           Dump Trailer Rentals

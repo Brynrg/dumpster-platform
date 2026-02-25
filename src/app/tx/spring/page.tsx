@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Canonical from "@/components/Canonical";
 import RegionHero from "@/components/RegionHero";
 import TrustBadges from "@/components/TrustBadges";
 import { buildCheckUrl, getRegionById } from "@/lib/regions";
@@ -11,6 +12,20 @@ export const metadata: Metadata = {
   title: "Dumpster & Dump Trailer Rentals in Spring, TX",
   description:
     "Request dumpster and dump trailer rentals in Spring, TX and nearby service areas.",
+  openGraph: {
+    title: "Dumpster & Dump Trailer Rentals in Spring, TX",
+    description:
+      "Request dumpster and dump trailer rentals in Spring, TX and nearby service areas.",
+    type: "website",
+    images: ["/og.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dumpster & Dump Trailer Rentals in Spring, TX",
+    description:
+      "Request dumpster and dump trailer rentals in Spring, TX and nearby service areas.",
+    images: ["/og.png"],
+  },
 };
 
 const faqItems = [
@@ -51,6 +66,7 @@ export default function SpringRegionPage() {
 
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
+      <Canonical pathname="/tx/spring" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
