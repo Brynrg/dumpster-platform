@@ -83,11 +83,11 @@ export default async function CityPage({ params }: CityPageProps) {
       <Canonical pathname={`/service-areas/${city.slug}`} />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema).replace(/</g, '\\u003c') }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema).replace(/</g, '\\u003c') }}
       />
 
       <section className="rounded-xl border border-black/10 p-8 dark:border-white/15">
