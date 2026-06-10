@@ -26,24 +26,16 @@ export default async function AdminMetricsPage() {
       .from("leads")
       .select("id", { count: "exact", head: true })
       .gte("created_at", since30),
-    Promise.all(
-      regions.map(async (region) => {
-        const { count } = await supabase
-          .from("leads")
-          .select("id", { count: "exact", head: true })
-          .eq("region", region);
-        return [region, count ?? 0] as const;
-      }),
-    ),
-    Promise.all(
-      PRODUCTS.map(async (product) => {
-        const { count } = await supabase
-          .from("leads")
-          .select("id", { count: "exact", head: true })
-          .eq("product", product);
-        return [product, count ?? 0] as const;
-      }),
-    ),
+    supabase.rpc("get_lead_counts_by_region", { region_ids: regions }).then(({ data, error }) => {
+      if (error) console.error("Error fetching region counts:", error);
+      const countsMap = new Map((data || []).map((r: any) => [r.region, Number(r.count)]));
+      return regions.map(r => [r, countsMap.get(r) || 0] as [string, number]);
+    }),
+    supabase.rpc("get_lead_counts_by_product", { product_ids: [...PRODUCTS] }).then(({ data, error }) => {
+      if (error) console.error("Error fetching product counts:", error);
+      const countsMap = new Map((data || []).map((r: any) => [r.product, Number(r.count)]));
+      return PRODUCTS.map(p => [p, countsMap.get(p) || 0] as [string, number]);
+    }),
   ]);
 
   return (
