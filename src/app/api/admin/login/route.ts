@@ -1,6 +1,24 @@
 import { NextResponse } from "next/server";
+import { LRUCache } from "lru-cache";
+
+const rateLimit = new LRUCache<string, number>({
+  max: 500,
+  ttl: 1000 * 60 * 15, // 15 minutes
+});
 
 export async function POST(request: Request) {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : "unknown";
+
+  const count = (rateLimit.get(ip) || 0) as number;
+  if (count >= 5) {
+    return NextResponse.json(
+      { ok: false, error: "Too many login attempts. Please try again later." },
+      { status: 429 },
+    );
+  }
+  rateLimit.set(ip, count + 1);
+
   const adminToken = process.env.ADMIN_TOKEN;
 
   if (!adminToken) {
@@ -26,6 +44,9 @@ export async function POST(request: Request) {
       { status: 401 },
     );
   }
+
+  // Reset rate limit on successful login
+  rateLimit.delete(ip);
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set("admin", "1", {
