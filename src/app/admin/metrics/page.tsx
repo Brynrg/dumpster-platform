@@ -16,7 +16,7 @@ export default async function AdminMetricsPage() {
   const since7 = isoDaysAgo(7);
   const since30 = isoDaysAgo(30);
 
-  const [totalRes, last7Res, last30Res, regionCounts, productCounts] = await Promise.all([
+  const [totalRes, last7Res, last30Res, regionMetricsRes, productMetricsRes] = await Promise.all([
     supabase.from("leads").select("id", { count: "exact", head: true }),
     supabase
       .from("leads")
@@ -26,25 +26,15 @@ export default async function AdminMetricsPage() {
       .from("leads")
       .select("id", { count: "exact", head: true })
       .gte("created_at", since30),
-    Promise.all(
-      regions.map(async (region) => {
-        const { count } = await supabase
-          .from("leads")
-          .select("id", { count: "exact", head: true })
-          .eq("region", region);
-        return [region, count ?? 0] as const;
-      }),
-    ),
-    Promise.all(
-      PRODUCTS.map(async (product) => {
-        const { count } = await supabase
-          .from("leads")
-          .select("id", { count: "exact", head: true })
-          .eq("product", product);
-        return [product, count ?? 0] as const;
-      }),
-    ),
+    supabase.rpc("get_region_metrics"),
+    supabase.rpc("get_product_metrics"),
   ]);
+
+  const regionCountsMap = Object.fromEntries(regionMetricsRes.data?.map((r: { region: string; count: number }) => [r.region, r.count]) || []);
+  const productCountsMap = Object.fromEntries(productMetricsRes.data?.map((p: { product: string; count: number }) => [p.product, p.count]) || []);
+
+  const regionCounts = regions.map((region) => [region, regionCountsMap[region] ?? 0] as const);
+  const productCounts = PRODUCTS.map((product) => [product, productCountsMap[product] ?? 0] as const);
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
