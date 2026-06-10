@@ -30,24 +30,6 @@ type RateRow = {
   unit: string | null;
 };
 
-async function countLeadsForDays(
-  region: string,
-  product: string,
-  days: number,
-): Promise<number> {
-  const supabase = getSupabaseAdmin();
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-  const { count, error } = await supabase
-    .from("leads")
-    .select("id", { count: "exact", head: true })
-    .eq("region", region)
-    .eq("product", product)
-    .gte("created_at", since);
-
-  if (error) return 0;
-  return count ?? 0;
-}
-
 export default async function AdminPricingPage() {
   const regions = getAllRegions().map((region) => region.id);
   const supabase = getSupabaseAdmin();
@@ -59,7 +41,10 @@ export default async function AdminPricingPage() {
     );
 
   const configMap = new Map(
-    ((configData ?? []) as PricingConfigRow[]).map((config) => [config.region, config]),
+    ((configData ?? []) as PricingConfigRow[]).map((config) => [
+      config.region,
+      config,
+    ]),
   );
 
   const configs: PricingConfigRow[] = regions.map((region) => {
@@ -100,7 +85,10 @@ export default async function AdminPricingPage() {
   const marketByFacilityId = new Map(
     facilities.map((facility) => [facility.id, facility.market]),
   );
-  const dumpCostAccumulator = new Map<string, { total: number; count: number }>();
+  const dumpCostAccumulator = new Map<
+    string,
+    { total: number; count: number }
+  >();
   for (const rate of rates) {
     const market = marketByFacilityId.get(rate.facility_id);
     if (!market || rate.price === null) continue;
@@ -116,32 +104,53 @@ export default async function AdminPricingPage() {
     regions.map((region) => {
       const aggregate = dumpCostAccumulator.get(region);
       const estimated =
-        aggregate && aggregate.count > 0 ? aggregate.total / aggregate.count : 0;
+        aggregate && aggregate.count > 0
+          ? aggregate.total / aggregate.count
+          : 0;
       return [region, estimated];
     }),
   );
 
   const products = ["dump_trailer", "dumpster_20", "dumpster_30", "not_sure"];
-  const demandEntries = await Promise.all(
-    regions.flatMap((region) =>
-      products.map(async (product) => {
-        const [d30, d60, d90] = await Promise.all([
-          countLeadsForDays(region, product, 30),
-          countLeadsForDays(region, product, 60),
-          countLeadsForDays(region, product, 90),
-        ]);
-        return [`${region}:${product}`, { d30, d60, d90 }] as const;
-      }),
-    ),
-  );
-  const demandCounts = Object.fromEntries(demandEntries);
+
+  // Server-side fetching doesn't cause hydration mismatch here if it's async Server Component, but lint complains about impure function in render. Use a steady Date for SSR.
+  const now = new Date().getTime();
+  const since90 = new Date(now - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const since60 = new Date(now - 60 * 24 * 60 * 60 * 1000).toISOString();
+  const since30 = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: leadsData } = await supabase
+    .from("leads")
+    .select("region,product,created_at")
+    .gte("created_at", since90);
+
+  const demandCounts: Record<
+    string,
+    { d30: number; d60: number; d90: number }
+  > = {};
+  for (const region of regions) {
+    for (const product of products) {
+      demandCounts[`${region}:${product}`] = { d30: 0, d60: 0, d90: 0 };
+    }
+  }
+
+  for (const lead of leadsData ?? []) {
+    const key = `${lead.region}:${lead.product}`;
+    if (demandCounts[key]) {
+      demandCounts[key].d90++;
+      if (lead.created_at >= since60) demandCounts[key].d60++;
+      if (lead.created_at >= since30) demandCounts[key].d30++;
+    }
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight">Admin Pricing Model</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">
+        Admin Pricing Model
+      </h1>
       <p className="mt-2 text-black/70 dark:text-white/70">
-        Configure regional cost assumptions and compare demand against break-even
-        thresholds.
+        Configure regional cost assumptions and compare demand against
+        break-even thresholds.
       </p>
       <PricingEditor
         initialConfigs={configs}
