@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Input from "@/components/ui/Input";
 import { track } from "@/lib/analytics";
+import { isValidPhone, isValidEmail } from "@/lib/validation";
 
 type StoredRequest = {
   region?: string;
@@ -28,14 +29,6 @@ type NotifyForm = {
   email: string;
   sms_opt_in: boolean;
 };
-
-function isValidPhone(phone: string) {
-  return /^\+?[0-9()\-\s]{10,20}$/.test(phone.trim());
-}
-
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-}
 
 export default function UnavailablePage() {
   const [request] = useState<StoredRequest>(() => {
