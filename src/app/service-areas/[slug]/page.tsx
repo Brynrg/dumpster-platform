@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Canonical from "@/components/Canonical";
+import JsonLd from "@/components/JsonLd";
 import Button from "@/components/ui/Button";
 import { cities, getCityBySlug } from "@/lib/cities";
 import { buildCheckUrl, getRegionById } from "@/lib/regions";
@@ -81,14 +82,8 @@ export default async function CityPage({ params }: CityPageProps) {
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
       <Canonical pathname={`/service-areas/${city.slug}`} />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
-      />
+      <JsonLd data={localBusinessSchema} />
+      <JsonLd data={serviceSchema} />
 
       <section className="rounded-xl border border-black/10 p-8 dark:border-white/15">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">

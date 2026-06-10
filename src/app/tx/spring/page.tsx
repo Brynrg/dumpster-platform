@@ -3,6 +3,7 @@ import Link from "next/link";
 import Canonical from "@/components/Canonical";
 import RegionHero from "@/components/RegionHero";
 import TrustBadges from "@/components/TrustBadges";
+import JsonLd from "@/components/JsonLd";
 import { buildCheckUrl, getRegionById } from "@/lib/regions";
 import { buildLocalBusinessSchema, buildServiceSchema } from "@/lib/schema";
 
@@ -67,14 +68,8 @@ export default function SpringRegionPage() {
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
       <Canonical pathname="/tx/spring" />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
-      />
+      <JsonLd data={localBusinessSchema} />
+      <JsonLd data={serviceSchema} />
       <RegionHero
         title="Spring, TX Dumpster & Dump Trailer Rentals"
         subtitle="Reliable rental options for home cleanouts, renovation debris, and jobsite waste in Spring and nearby communities."

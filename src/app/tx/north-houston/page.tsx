@@ -3,6 +3,7 @@ import Link from "next/link";
 import Canonical from "@/components/Canonical";
 import RegionHero from "@/components/RegionHero";
 import TrustBadges from "@/components/TrustBadges";
+import JsonLd from "@/components/JsonLd";
 import { buildCheckUrl, getRegionById } from "@/lib/regions";
 import { buildLocalBusinessSchema, buildServiceSchema } from "@/lib/schema";
 
@@ -67,14 +68,8 @@ export default function NorthHoustonRegionPage() {
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-6 py-12">
       <Canonical pathname="/tx/north-houston" />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
-      />
+      <JsonLd data={localBusinessSchema} />
+      <JsonLd data={serviceSchema} />
       <RegionHero
         title="North Houston, TX Dumpster & Dump Trailer Rentals"
         subtitle="Flexible rental options for cleanup, renovation, and construction projects across North Houston communities."
