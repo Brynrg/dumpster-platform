@@ -1,32 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-
-type LeadOption = {
-  id: string;
-  created_at: string;
-  region: string;
-  city: string | null;
-  state: string | null;
-  name: string | null;
-  phone: string;
-  email: string | null;
-};
-
-type ReviewRequest = {
-  id: string;
-  created_at: string;
-  market: string;
-  lead_id: string | null;
-  contact_name: string | null;
-  phone: string | null;
-  email: string | null;
-  channel: "sms" | "email" | null;
-  message: string | null;
-  status: "draft" | "sent" | "completed" | "failed" | null;
-  completed_at: string | null;
-  notes: string | null;
-};
+import type { LeadOption, ReviewRequest } from "@/types/seo";
 
 type Props = {
   initialMarket: string;
@@ -71,7 +46,9 @@ export default function ReviewRequestBuilder({
   }
 
   function generateTemplate() {
-    setMessage(channel === "sms" ? COMPLIANT_SMS_TEMPLATE : COMPLIANT_EMAIL_TEMPLATE);
+    setMessage(
+      channel === "sms" ? COMPLIANT_SMS_TEMPLATE : COMPLIANT_EMAIL_TEMPLATE,
+    );
   }
 
   async function saveDraft() {
@@ -115,7 +92,8 @@ export default function ReviewRequestBuilder({
       <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
         <h2 className="text-xl font-semibold">Review Request Builder</h2>
         <p className="mt-2 text-sm text-black/70 dark:text-white/70">
-          Creates compliant draft copy only. This module does not send SMS or email.
+          Creates compliant draft copy only. This module does not send SMS or
+          email.
         </p>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -145,7 +123,8 @@ export default function ReviewRequestBuilder({
               <option value="">No lead selected</option>
               {matchingLeads.map((lead) => (
                 <option key={lead.id} value={lead.id}>
-                  {lead.name ?? "Unknown name"} - {lead.phone} - {lead.city ?? "Unknown city"}
+                  {lead.name ?? "Unknown name"} - {lead.phone} -{" "}
+                  {lead.city ?? "Unknown city"}
                 </option>
               ))}
             </select>
@@ -154,7 +133,9 @@ export default function ReviewRequestBuilder({
             <span className="mb-1 block font-medium">Channel</span>
             <select
               value={channel}
-              onChange={(event) => setChannel(event.target.value as "sms" | "email")}
+              onChange={(event) =>
+                setChannel(event.target.value as "sms" | "email")
+              }
               className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
             >
               <option value="sms">sms</option>
@@ -219,7 +200,9 @@ export default function ReviewRequestBuilder({
             Save Draft
           </button>
           {saveMessage ? (
-            <span className="text-sm text-black/70 dark:text-white/70">{saveMessage}</span>
+            <span className="text-sm text-black/70 dark:text-white/70">
+              {saveMessage}
+            </span>
           ) : null}
         </div>
       </div>
@@ -238,8 +221,13 @@ export default function ReviewRequestBuilder({
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.id} className="border-b border-black/5 align-top dark:border-white/10">
-                <td className="px-3 py-2">{new Date(row.created_at).toLocaleString()}</td>
+              <tr
+                key={row.id}
+                className="border-b border-black/5 align-top dark:border-white/10"
+              >
+                <td className="px-3 py-2">
+                  {new Date(row.created_at).toLocaleString()}
+                </td>
                 <td className="px-3 py-2">{row.market}</td>
                 <td className="px-3 py-2">{row.channel ?? ""}</td>
                 <td className="px-3 py-2">
@@ -251,7 +239,10 @@ export default function ReviewRequestBuilder({
             ))}
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-3 py-4 text-center text-black/60 dark:text-white/60">
+                <td
+                  colSpan={6}
+                  className="px-3 py-4 text-center text-black/60 dark:text-white/60"
+                >
                   No review request drafts yet.
                 </td>
               </tr>

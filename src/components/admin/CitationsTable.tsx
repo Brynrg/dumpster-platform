@@ -1,26 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { CitationRow } from "@/types/seo";
 
-type Citation = {
-  id: string;
-  created_at: string;
-  market: string;
-  provider: string;
-  listing_url: string | null;
-  nap_name: string | null;
-  nap_phone: string | null;
-  nap_service_area: string | null;
-  status: "todo" | "submitted" | "live" | "needs_fix" | null;
-  last_verified: string | null;
-  notes: string | null;
-};
-
-type EditableCitation = Citation & { saveState?: string };
+type EditableCitation = CitationRow & { saveState?: string };
 
 type Props = {
   initialMarket: string;
-  citations: Citation[];
+  citations: CitationRow[];
 };
 
 const STATUSES = ["todo", "submitted", "live", "needs_fix"] as const;
@@ -34,7 +21,9 @@ export default function CitationsTable({ initialMarket, citations }: Props) {
   const [market] = useState(initialMarket);
 
   function patchRow(id: string, patch: Partial<EditableCitation>) {
-    setRows((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
+    setRows((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+    );
   }
 
   const filteredRows = useMemo(() => {
@@ -69,7 +58,7 @@ export default function CitationsTable({ initialMarket, citations }: Props) {
       const data = (await response.json()) as {
         ok?: boolean;
         error?: string;
-        citation?: Citation;
+        citation?: CitationRow;
       };
       if (!response.ok || !data.ok || !data.citation) {
         patchRow(row.id, { saveState: data.error ?? "Failed to save." });
@@ -151,7 +140,9 @@ export default function CitationsTable({ initialMarket, citations }: Props) {
                   type="date"
                   value={row.last_verified ?? ""}
                   onChange={(event) =>
-                    patchRow(row.id, { last_verified: event.target.value || null })
+                    patchRow(row.id, {
+                      last_verified: event.target.value || null,
+                    })
                   }
                   className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
                 />
@@ -161,7 +152,9 @@ export default function CitationsTable({ initialMarket, citations }: Props) {
                 <input
                   value={row.listing_url ?? ""}
                   onChange={(event) =>
-                    patchRow(row.id, { listing_url: event.target.value || null })
+                    patchRow(row.id, {
+                      listing_url: event.target.value || null,
+                    })
                   }
                   className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
                 />
@@ -191,7 +184,9 @@ export default function CitationsTable({ initialMarket, citations }: Props) {
                 <input
                   value={row.nap_service_area ?? ""}
                   onChange={(event) =>
-                    patchRow(row.id, { nap_service_area: event.target.value || null })
+                    patchRow(row.id, {
+                      nap_service_area: event.target.value || null,
+                    })
                   }
                   className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
                 />

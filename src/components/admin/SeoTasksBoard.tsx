@@ -1,18 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-
-type SeoTask = {
-  id: string;
-  created_at: string;
-  market: string;
-  category: "gbp" | "reviews" | "citations" | "content" | "maps";
-  title: string;
-  cadence: "weekly" | "monthly" | "quarterly" | "one_time" | null;
-  due_date: string | null;
-  status: "todo" | "doing" | "done" | "skipped";
-  notes: string | null;
-};
+import type { SeoTask } from "@/types/seo";
 
 type EditableTask = SeoTask & {
   saveState?: string;
@@ -47,9 +36,11 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
   const filteredTasks = useMemo(() => {
     return taskRows.filter((row) => {
       if (filterMarket !== "all" && row.market !== filterMarket) return false;
-      if (filterCategory !== "all" && row.category !== filterCategory) return false;
+      if (filterCategory !== "all" && row.category !== filterCategory)
+        return false;
       if (filterStatus !== "all" && row.status !== filterStatus) return false;
-      if (filterCadence !== "all" && (row.cadence ?? "") !== filterCadence) return false;
+      if (filterCadence !== "all" && (row.cadence ?? "") !== filterCadence)
+        return false;
       return true;
     });
   }, [filterCadence, filterCategory, filterMarket, filterStatus, taskRows]);
@@ -163,7 +154,10 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
             <select
               value={newTask.category}
               onChange={(event) =>
-                setNewTask((prev) => ({ ...prev, category: event.target.value }))
+                setNewTask((prev) => ({
+                  ...prev,
+                  category: event.target.value,
+                }))
               }
               className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
             >
@@ -207,7 +201,10 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
               type="date"
               value={newTask.due_date}
               onChange={(event) =>
-                setNewTask((prev) => ({ ...prev, due_date: event.target.value }))
+                setNewTask((prev) => ({
+                  ...prev,
+                  due_date: event.target.value,
+                }))
               }
               className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
             />
@@ -232,7 +229,9 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
             Save Task
           </button>
           {createMessage ? (
-            <span className="text-sm text-black/70 dark:text-white/70">{createMessage}</span>
+            <span className="text-sm text-black/70 dark:text-white/70">
+              {createMessage}
+            </span>
           ) : null}
         </div>
       </div>
@@ -302,7 +301,9 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
                   <select
                     value={task.market}
                     onChange={(event) =>
-                      patchTask(task.id, { market: event.target.value as SeoTask["market"] })
+                      patchTask(task.id, {
+                        market: event.target.value as SeoTask["market"],
+                      })
                     }
                     className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
                   >
@@ -318,7 +319,9 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
                   <select
                     value={task.category}
                     onChange={(event) =>
-                      patchTask(task.id, { category: event.target.value as SeoTask["category"] })
+                      patchTask(task.id, {
+                        category: event.target.value as SeoTask["category"],
+                      })
                     }
                     className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
                   >
@@ -334,7 +337,9 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
                   <select
                     value={task.status}
                     onChange={(event) =>
-                      patchTask(task.id, { status: event.target.value as SeoTask["status"] })
+                      patchTask(task.id, {
+                        status: event.target.value as SeoTask["status"],
+                      })
                     }
                     className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
                   >
@@ -372,7 +377,9 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
                     type="date"
                     value={task.due_date ?? ""}
                     onChange={(event) =>
-                      patchTask(task.id, { due_date: event.target.value || null })
+                      patchTask(task.id, {
+                        due_date: event.target.value || null,
+                      })
                     }
                     className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
                   />
