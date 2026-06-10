@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import { track } from "@/lib/analytics";
+import { isValidEmail, isValidPhone } from "@/lib/validation";
 
 type Product = "dump_trailer" | "dumpster_20" | "dumpster_30" | "not_sure" | "";
 type Duration = "1-3_days" | "4-7_days" | "8+_days" | "";
@@ -52,13 +53,6 @@ const initialState: FormState = {
   sms_opt_in: false,
 };
 
-function isValidPhone(phone: string) {
-  return /^\+?[0-9()\-\s]{10,20}$/.test(phone.trim());
-}
-
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-}
 
 type CheckFunnelProps = {
   initialRegion: string;
