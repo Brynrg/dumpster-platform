@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifyAdminToken } from "@/lib/adminAuth";
 import type { NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { isSmsEnabled, sendSms } from "@/lib/twilio/server";
@@ -37,7 +38,7 @@ function toBoolean(value: unknown, fallback: boolean) {
 }
 
 export async function POST(request: NextRequest) {
-  if (request.cookies.get("admin")?.value !== "1") {
+  if (!(await verifyAdminToken(request.cookies.get("admin")?.value))) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 

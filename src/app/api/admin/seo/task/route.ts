@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { verifyAdminToken } from "@/lib/adminAuth";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 type TaskPayload = {
@@ -25,7 +26,7 @@ const ALLOWED_CADENCE = new Set(["weekly", "monthly", "quarterly", "one_time"]);
 const ALLOWED_STATUS = new Set(["todo", "doing", "done", "skipped"]);
 
 export async function POST(request: NextRequest) {
-  if (request.cookies.get("admin")?.value !== "1") {
+  if (!(await verifyAdminToken(request.cookies.get("admin")?.value))) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 
