@@ -30,24 +30,6 @@ type RateRow = {
   unit: string | null;
 };
 
-async function countLeadsForDays(
-  region: string,
-  product: string,
-  days: number,
-): Promise<number> {
-  const supabase = getSupabaseAdmin();
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-  const { count, error } = await supabase
-    .from("leads")
-    .select("id", { count: "exact", head: true })
-    .eq("region", region)
-    .eq("product", product)
-    .gte("created_at", since);
-
-  if (error) return 0;
-  return count ?? 0;
-}
-
 export default async function AdminPricingPage() {
   const regions = getAllRegions().map((region) => region.id);
   const supabase = getSupabaseAdmin();
@@ -122,19 +104,43 @@ export default async function AdminPricingPage() {
   );
 
   const products = ["dump_trailer", "dumpster_20", "dumpster_30", "not_sure"];
-  const demandEntries = await Promise.all(
-    regions.flatMap((region) =>
-      products.map(async (product) => {
-        const [d30, d60, d90] = await Promise.all([
-          countLeadsForDays(region, product, 30),
-          countLeadsForDays(region, product, 60),
-          countLeadsForDays(region, product, 90),
-        ]);
-        return [`${region}:${product}`, { d30, d60, d90 }] as const;
-      }),
-    ),
-  );
-  const demandCounts = Object.fromEntries(demandEntries);
+
+  const demandCounts: Record<string, { d30: number; d60: number; d90: number }> = {};
+  for (const region of regions) {
+    for (const product of products) {
+      demandCounts[`${region}:${product}`] = { d30: 0, d60: 0, d90: 0 };
+    }
+  }
+
+  // eslint-disable-next-line react-hooks/purity
+  const now = Date.now();
+  const since90 = new Date(now - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: leadsData } = await supabase
+    .from("leads")
+    .select("region, product, created_at")
+    .in("region", regions)
+    .in("product", products)
+    .gte("created_at", since90);
+
+  const leads = leadsData || [];
+  const d30Ms = 30 * 24 * 60 * 60 * 1000;
+  const d60Ms = 60 * 24 * 60 * 60 * 1000;
+
+  for (const lead of leads) {
+    const key = `${lead.region}:${lead.product}`;
+    if (!demandCounts[key]) continue;
+
+    const leadTime = new Date(lead.created_at).getTime();
+    const ageMs = now - leadTime;
+
+    demandCounts[key].d90 += 1;
+    if (ageMs <= d60Ms) {
+      demandCounts[key].d60 += 1;
+    }
+    if (ageMs <= d30Ms) {
+      demandCounts[key].d30 += 1;
+    }
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-12">
