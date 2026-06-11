@@ -4,6 +4,12 @@ import ReviewRequestBuilder from "@/components/admin/ReviewRequestBuilder";
 import SeoTasksBoard from "@/components/admin/SeoTasksBoard";
 import { cities } from "@/lib/cities";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
+import type {
+  SeoTask,
+  ReviewRequest,
+  CitationRow,
+  LeadOption,
+} from "@/types/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -11,58 +17,6 @@ type SearchParams = {
   market?: string | string[];
   tab?: string | string[];
   window?: string | string[];
-};
-
-type SeoTask = {
-  id: string;
-  created_at: string;
-  market: string;
-  category: "gbp" | "reviews" | "citations" | "content" | "maps";
-  title: string;
-  cadence: "weekly" | "monthly" | "quarterly" | "one_time" | null;
-  due_date: string | null;
-  status: "todo" | "doing" | "done" | "skipped";
-  notes: string | null;
-};
-
-type ReviewRequest = {
-  id: string;
-  created_at: string;
-  market: string;
-  lead_id: string | null;
-  contact_name: string | null;
-  phone: string | null;
-  email: string | null;
-  channel: "sms" | "email" | null;
-  message: string | null;
-  status: "draft" | "sent" | "completed" | "failed" | null;
-  completed_at: string | null;
-  notes: string | null;
-};
-
-type CitationRow = {
-  id: string;
-  created_at: string;
-  market: string;
-  provider: string;
-  listing_url: string | null;
-  nap_name: string | null;
-  nap_phone: string | null;
-  nap_service_area: string | null;
-  status: "todo" | "submitted" | "live" | "needs_fix" | null;
-  last_verified: string | null;
-  notes: string | null;
-};
-
-type LeadOption = {
-  id: string;
-  created_at: string;
-  region: string;
-  city: string | null;
-  state: string | null;
-  name: string | null;
-  phone: string;
-  email: string | null;
 };
 
 type ExpansionRow = {
@@ -136,7 +90,9 @@ export default async function AdminSeoPage({
     await Promise.all([
       supabase
         .from("seo_tasks")
-        .select("id,created_at,market,category,title,cadence,due_date,status,notes")
+        .select(
+          "id,created_at,market,category,title,cadence,due_date,status,notes",
+        )
         .eq("market", market)
         .order("created_at", { ascending: false })
         .limit(500),
@@ -159,20 +115,14 @@ export default async function AdminSeoPage({
         .from("leads")
         .select("id,created_at,region,city,state,name,phone,email")
         .eq("region", market)
-        .gte(
-          "created_at",
-          getIsoDaysAgo(30),
-        )
+        .gte("created_at", getIsoDaysAgo(30))
         .order("created_at", { ascending: false })
         .limit(200),
       supabase
         .from("leads")
         .select("created_at,city,state")
         .eq("region", market)
-        .gte(
-          "created_at",
-          getIsoDaysAgo(90),
-        )
+        .gte("created_at", getIsoDaysAgo(90))
         .order("created_at", { ascending: false })
         .limit(2000),
     ]);
@@ -273,7 +223,9 @@ export default async function AdminSeoPage({
           </select>
         </label>
         <label className="block text-sm">
-          <span className="mb-1 block font-medium">Expansion Window (days)</span>
+          <span className="mb-1 block font-medium">
+            Expansion Window (days)
+          </span>
           <select
             name="window"
             defaultValue={selectedWindow}
@@ -353,13 +305,17 @@ export default async function AdminSeoPage({
                     key={row.citySlug}
                     className="border-b border-black/5 align-top dark:border-white/10"
                   >
-                    <td className="px-3 py-2 font-mono text-xs">{row.citySlug}</td>
+                    <td className="px-3 py-2 font-mono text-xs">
+                      {row.citySlug}
+                    </td>
                     <td className="px-3 py-2">{row.cityName}</td>
                     <td className="px-3 py-2">{row.state}</td>
                     <td className="px-3 py-2">{row.d30}</td>
                     <td className="px-3 py-2">{row.d60}</td>
                     <td className="px-3 py-2">{row.d90}</td>
-                    <td className="px-3 py-2">{row.knownCityPage ? "yes" : "no"}</td>
+                    <td className="px-3 py-2">
+                      {row.knownCityPage ? "yes" : "no"}
+                    </td>
                   </tr>
                 ))}
                 {sortedExpansionRows.length === 0 ? (
@@ -368,7 +324,8 @@ export default async function AdminSeoPage({
                       colSpan={7}
                       className="px-3 py-4 text-center text-black/60 dark:text-white/60"
                     >
-                      No lead volume available for this market in the last 90 days.
+                      No lead volume available for this market in the last 90
+                      days.
                     </td>
                   </tr>
                 ) : null}
@@ -385,8 +342,8 @@ export default async function AdminSeoPage({
             <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
               {candidateRows.map((row) => (
                 <li key={row.citySlug}>
-                  {row.citySlug} ({row.cityName}, {row.state}) - d30: {row.d30}, d60:{" "}
-                  {row.d60}, d90: {row.d90}
+                  {row.citySlug} ({row.cityName}, {row.state}) - d30: {row.d30},
+                  d60: {row.d60}, d90: {row.d90}
                 </li>
               ))}
               {candidateRows.length === 0 ? (
@@ -396,13 +353,27 @@ export default async function AdminSeoPage({
           </section>
 
           <section className="rounded-xl border border-black/10 p-5 dark:border-white/15">
-            <h2 className="text-xl font-semibold">Copy-Ready City Page Checklist</h2>
+            <h2 className="text-xl font-semibold">
+              Copy-Ready City Page Checklist
+            </h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm">
-              <li>Add the city entry in <code>src/lib/cities.ts</code> with nearby city slugs.</li>
-              <li>Confirm city-to-market mapping and state abbreviation accuracy.</li>
-              <li>Verify city appears in top lead demand windows (30/60/90 days).</li>
-              <li>Review related region page links and nearby service area cards.</li>
-              <li>Run <code>npm run lint</code> and <code>npm run build</code> before launch.</li>
+              <li>
+                Add the city entry in <code>src/lib/cities.ts</code> with nearby
+                city slugs.
+              </li>
+              <li>
+                Confirm city-to-market mapping and state abbreviation accuracy.
+              </li>
+              <li>
+                Verify city appears in top lead demand windows (30/60/90 days).
+              </li>
+              <li>
+                Review related region page links and nearby service area cards.
+              </li>
+              <li>
+                Run <code>npm run lint</code> and <code>npm run build</code>{" "}
+                before launch.
+              </li>
             </ol>
           </section>
         </section>
