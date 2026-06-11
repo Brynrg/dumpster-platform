@@ -38,7 +38,10 @@ function toBoolean(value: unknown, fallback: boolean) {
 
 export async function POST(request: NextRequest) {
   if (request.cookies.get("admin")?.value !== "1") {
-    return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
+    return NextResponse.json(
+      { ok: false, error: "Unauthorized." },
+      { status: 401 },
+    );
   }
 
   let payload: NotifyPayload;
@@ -181,51 +184,71 @@ export async function POST(request: NextRequest) {
     let skippedCount = 0;
     let failedCount = 0;
 
-    for (const lead of leads) {
-      if (lead.sms_opt_in !== true) {
-        skippedCount += 1;
-        notificationRows.push({
-          lead_id: lead.id,
-          campaign_id: campaign.id,
-          sms_sid: null,
-          status: "skipped",
-          error: "sms_opt_in is false",
-        });
-        continue;
-      }
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < leads.length; i += BATCH_SIZE) {
+      const batch = leads.slice(i, i + BATCH_SIZE);
 
-      if (dryRun) {
-        skippedCount += 1;
-        notificationRows.push({
-          lead_id: lead.id,
-          campaign_id: campaign.id,
-          sms_sid: null,
-          status: "skipped",
-          error: "dry_run",
-        });
-        continue;
-      }
+      const promises = batch.map(async (lead) => {
+        if (lead.sms_opt_in !== true) {
+          return {
+            lead_id: lead.id,
+            status: "skipped" as const,
+            error: "sms_opt_in is false",
+            sms_sid: null,
+          };
+        }
 
-      try {
-        const sms = await sendSms(lead.phone, messageTemplate);
-        sentCount += 1;
-        sentLeadIds.push(lead.id);
-        notificationRows.push({
-          lead_id: lead.id,
-          campaign_id: campaign.id,
-          sms_sid: sms.sid,
-          status: "sent",
-          error: null,
-        });
-      } catch (error) {
-        failedCount += 1;
-        notificationRows.push({
-          lead_id: lead.id,
-          campaign_id: campaign.id,
-          sms_sid: null,
-          status: "failed",
-          error: error instanceof Error ? error.message : "send failed",
-        });
+        if (dryRun) {
+          return {
+            lead_id: lead.id,
+            status: "skipped" as const,
+            error: "dry_run",
+            sms_sid: null,
+          };
+        }
+
+        try {
+          const sms = await sendSms(lead.phone, messageTemplate);
+          return {
+            lead_id: lead.id,
+            status: "sent" as const,
+            error: null,
+            sms_sid: sms.sid,
+          };
+        } catch (error) {
+          return {
+            lead_id: lead.id,
+            status: "failed" as const,
+            error: error instanceof Error ? error.message : "send failed",
+            sms_sid: null,
+          };
+        }
+      });
+
+      const results = await Promise.allSettled(promises);
+
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          const row = result.value;
+          notificationRows.push({
+            lead_id: row.lead_id,
+            campaign_id: campaign.id,
+            sms_sid: row.sms_sid,
+            status: row.status,
+            error: row.error,
+          });
+
+          if (row.status === "sent") {
+            sentCount += 1;
+            sentLeadIds.push(row.lead_id);
+          } else if (row.status === "skipped") {
+            skippedCount += 1;
+          } else if (row.status === "failed") {
+            failedCount += 1;
+          }
+        } else {
+          failedCount += 1;
+        }
       }
     }
 
@@ -267,7 +290,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to process notifications.";
+      error instanceof Error
+        ? error.message
+        : "Failed to process notifications.";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
