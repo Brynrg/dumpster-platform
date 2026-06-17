@@ -1,0 +1,11 @@
+🔒 Fix weak admin authentication using JWT
+
+🎯 What: Replaced the static, easily guessable `admin=1` cookie authentication with a robust, cryptographically signed JSON Web Token (JWT) implemented via the Edge-compatible `jose` library.
+
+⚠️ Risk: The previous implementation allowed anyone to bypass admin authentication simply by setting a cookie `admin="1"` in their browser. This exposed all admin APIs and the admin dashboard to unauthorized access.
+
+🛡️ Solution:
+- Created a new `src/lib/auth.ts` utility utilizing `jose` to sign and verify JWTs using `ADMIN_TOKEN` as the secret.
+- Updated `src/app/api/admin/login/route.ts` to sign and assign a short-lived (8h) JWT upon successful login.
+- Updated `src/middleware.ts` to asynchronously verify the JWT on the Edge runtime instead of checking for a static value.
+- Updated all `/api/admin/*` routes to use the `verifyAdminToken` utility to validate the JWT before processing requests.

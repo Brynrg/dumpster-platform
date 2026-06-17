@@ -1,3 +1,4 @@
+import { verifyAdminToken } from "@/lib/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -19,7 +20,7 @@ const ALLOWED_MARKETS = new Set(["tx-spring", "tx-north-houston", "fl-brevard"])
 const ALLOWED_STATUS = new Set(["todo", "submitted", "live", "needs_fix"]);
 
 export async function POST(request: NextRequest) {
-  if (request.cookies.get("admin")?.value !== "1") {
+  if (!(await verifyAdminToken(request.cookies.get("admin")?.value))) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 

@@ -1,11 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { verifyAdminToken } from "@/lib/auth";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/admin") && pathname !== "/admin") {
-    const isAuthed = request.cookies.get("admin")?.value === "1";
+    const isAuthed = await verifyAdminToken(request.cookies.get("admin")?.value);
     if (!isAuthed) {
       const url = request.nextUrl.clone();
       url.pathname = "/admin";
