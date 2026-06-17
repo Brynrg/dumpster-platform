@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 function csvEscape(value: string | null | undefined) {
-  const raw = value ?? "";
+  let raw = value ?? "";
+  if (/^[=+\-@\t\r]/.test(raw)) {
+    raw = "'" + raw;
+  }
   const escaped = raw.replace(/"/g, '""');
   return `"${escaped}"`;
 }
