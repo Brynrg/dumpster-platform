@@ -146,7 +146,7 @@ export default async function AdminSeoPage({
     const citySlug = slugifyCity(lead.city, state);
     if (!citySlug) continue;
 
-    const createdMs = new Date(lead.created_at).getTime();
+    const createdMs = Date.parse(lead.created_at);
     const ageDays = (NOW_MS - createdMs) / (1000 * 60 * 60 * 24);
     const existing = cityBuckets.get(citySlug) ?? {
       citySlug,
