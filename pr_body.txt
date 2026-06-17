@@ -1,0 +1,12 @@
+🎯 What:
+Implemented an in-memory rate limiter on the unauthenticated `POST /api/lead` endpoint. The rate limiter restricts requests to 5 per minute per IP address. It correctly identifies the originating client IP from the `x-forwarded-for` header and includes a periodic cleanup mechanism to discard stale IPs, preventing memory leaks over time.
+
+⚠️ Risk:
+Prior to this fix, the `POST /api/lead` endpoint lacked any form of rate limiting. Because this endpoint performs database insertions and triggers third-party services (Twilio SMS), an attacker could easily exploit this omission. An automated bot could spam the endpoint with fake requests, causing database clutter, potential resource exhaustion, and significantly driving up costs via Twilio SMS charges.
+
+🛡️ Solution:
+Added a lightweight sliding-window rate limiter directly within the route handler.
+- A `Map` stores recent request timestamps per IP.
+- Before payload parsing or database operations occur, the incoming IP is checked against the threshold. If the limit (5 per minute) is exceeded, a `429 Too Many Requests` response is immediately returned.
+- A garbage collection function (`cleanupRateLimitMap`) periodically runs to prune IPs with no recent activity, guaranteeing the server's memory remains bounded even under an IP-spoofing attack.
+- Comprehensive unit tests have been added to verify normal behavior, rejection handling, IP tracking independence, and header spoofing protections.

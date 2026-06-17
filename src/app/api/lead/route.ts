@@ -20,7 +20,68 @@ type LeadPayload = {
   sms_opt_in?: boolean;
 };
 
+const rateLimitMap = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 5;
+
+// Prevent memory leak by cleaning up old IPs periodically
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+let lastCleanupTime = Date.now();
+
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  if (now - lastCleanupTime > CLEANUP_INTERVAL_MS) {
+    const windowStart = now - RATE_LIMIT_WINDOW_MS;
+    for (const [ip, timestamps] of rateLimitMap.entries()) {
+      const validTimestamps = timestamps.filter(t => t > windowStart);
+      if (validTimestamps.length === 0) {
+        rateLimitMap.delete(ip);
+      } else {
+        rateLimitMap.set(ip, validTimestamps);
+      }
+    }
+    lastCleanupTime = now;
+  }
+}
+
+function extractIp(request: Request): string {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    // The x-forwarded-for header can be a comma-separated list of IPs.
+    // The first IP is the original client IP.
+    return forwardedFor.split(",")[0].trim();
+  }
+  return "unknown";
+}
+
+function checkRateLimit(ip: string): boolean {
+  cleanupRateLimitMap();
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+
+  let timestamps = rateLimitMap.get(ip) || [];
+  timestamps = timestamps.filter(t => t > windowStart);
+
+  if (timestamps.length >= MAX_REQUESTS_PER_WINDOW) {
+    rateLimitMap.set(ip, timestamps);
+    return false;
+  }
+
+  timestamps.push(now);
+  rateLimitMap.set(ip, timestamps);
+  return true;
+}
+
 export async function POST(request: Request) {
+  const ip = extractIp(request);
+
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { ok: false, error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   let payload: LeadPayload;
 
   try {
