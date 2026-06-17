@@ -15,11 +15,41 @@ const COMPLIANT_SMS_TEMPLATE =
 const COMPLIANT_EMAIL_TEMPLATE =
   "Thanks again for reaching out to us. If we were helpful, would you leave us a quick review? It helps local homeowners find us.";
 
+
+
 export default function ReviewRequestBuilder({
   initialMarket,
   leads,
   existingRequests,
 }: Props) {
+  const [rows, setRows] = useState(existingRequests);
+
+  function handleSave(newReview: ReviewRequest) {
+    setRows((prev) => [newReview, ...prev]);
+  }
+
+  return (
+    <section className="space-y-6">
+      <ReviewRequestForm
+        initialMarket={initialMarket}
+        leads={leads}
+        onSave={handleSave}
+      />
+      <ReviewRequestTable rows={rows} />
+    </section>
+  );
+}
+
+
+function ReviewRequestForm({
+  initialMarket,
+  leads,
+  onSave,
+}: {
+  initialMarket: string;
+  leads: LeadOption[];
+  onSave: (review: ReviewRequest) => void;
+}) {
   const [market, setMarket] = useState(initialMarket);
   const [leadId, setLeadId] = useState("");
   const [channel, setChannel] = useState<"sms" | "email">("sms");
@@ -29,7 +59,6 @@ export default function ReviewRequestBuilder({
   const [message, setMessage] = useState(COMPLIANT_SMS_TEMPLATE);
   const [notes, setNotes] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
-  const [rows, setRows] = useState(existingRequests);
 
   const matchingLeads = useMemo(
     () => leads.filter((lead) => lead.region === market),
@@ -80,7 +109,7 @@ export default function ReviewRequestBuilder({
         return;
       }
 
-      setRows((prev) => [data.review!, ...prev]);
+      onSave(data.review);
       setSaveMessage("Saved");
     } catch {
       setSaveMessage("Failed to save.");
@@ -88,168 +117,171 @@ export default function ReviewRequestBuilder({
   }
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-        <h2 className="text-xl font-semibold">Review Request Builder</h2>
-        <p className="mt-2 text-sm text-black/70 dark:text-white/70">
-          Creates compliant draft copy only. This module does not send SMS or
-          email.
-        </p>
+    <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
+      <h2 className="text-xl font-semibold">Review Request Builder</h2>
+      <p className="mt-2 text-sm text-black/70 dark:text-white/70">
+        Creates compliant draft copy only. This module does not send SMS or
+        email.
+      </p>
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="block text-sm">
-            <span className="mb-1 block font-medium">Market</span>
-            <select
-              value={market}
-              onChange={(event) => setMarket(event.target.value)}
-              className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-            >
-              {MARKETS.map((marketOption) => (
-                <option key={marketOption} value={marketOption}>
-                  {marketOption}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm sm:col-span-2">
-            <span className="mb-1 block font-medium">
-              Lead (optional, last 30 days for selected market)
-            </span>
-            <select
-              value={leadId}
-              onChange={(event) => applyLead(event.target.value)}
-              className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-            >
-              <option value="">No lead selected</option>
-              {matchingLeads.map((lead) => (
-                <option key={lead.id} value={lead.id}>
-                  {lead.name ?? "Unknown name"} - {lead.phone} -{" "}
-                  {lead.city ?? "Unknown city"}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block font-medium">Channel</span>
-            <select
-              value={channel}
-              onChange={(event) =>
-                setChannel(event.target.value as "sms" | "email")
-              }
-              className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-            >
-              <option value="sms">sms</option>
-              <option value="email">email</option>
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block font-medium">Contact Name</span>
-            <input
-              value={contactName}
-              onChange={(event) => setContactName(event.target.value)}
-              className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block font-medium">Phone</span>
-            <input
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-            />
-          </label>
-          <label className="block text-sm sm:col-span-2">
-            <span className="mb-1 block font-medium">Email</span>
-            <input
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-            />
-          </label>
-          <label className="block text-sm sm:col-span-2 lg:col-span-3">
-            <span className="mb-1 block font-medium">Message</span>
-            <textarea
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              className="min-h-24 w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-            />
-          </label>
-          <label className="block text-sm sm:col-span-2 lg:col-span-3">
-            <span className="mb-1 block font-medium">Notes</span>
-            <textarea
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              className="min-h-20 w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-            />
-          </label>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={generateTemplate}
-            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Market</span>
+          <select
+            value={market}
+            onChange={(event) => setMarket(event.target.value)}
+            className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
           >
-            Generate Compliant Template
-          </button>
-          <button
-            type="button"
-            onClick={() => void saveDraft()}
-            className="inline-flex items-center justify-center rounded-md border border-foreground bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-          >
-            Save Draft
-          </button>
-          {saveMessage ? (
-            <span className="text-sm text-black/70 dark:text-white/70">
-              {saveMessage}
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/15">
-        <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-black/10 dark:border-white/15">
-            <tr>
-              <th className="px-3 py-2">created_at</th>
-              <th className="px-3 py-2">market</th>
-              <th className="px-3 py-2">channel</th>
-              <th className="px-3 py-2">contact</th>
-              <th className="px-3 py-2">status</th>
-              <th className="px-3 py-2">message</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr
-                key={row.id}
-                className="border-b border-black/5 align-top dark:border-white/10"
-              >
-                <td className="px-3 py-2">
-                  {new Date(row.created_at).toLocaleString()}
-                </td>
-                <td className="px-3 py-2">{row.market}</td>
-                <td className="px-3 py-2">{row.channel ?? ""}</td>
-                <td className="px-3 py-2">
-                  {row.contact_name ?? ""} {row.phone ? `(${row.phone})` : ""}
-                </td>
-                <td className="px-3 py-2">{row.status ?? ""}</td>
-                <td className="px-3 py-2">{row.message ?? ""}</td>
-              </tr>
+            {MARKETS.map((marketOption) => (
+              <option key={marketOption} value={marketOption}>
+                {marketOption}
+              </option>
             ))}
-            {rows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="px-3 py-4 text-center text-black/60 dark:text-white/60"
-                >
-                  No review request drafts yet.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+          </select>
+        </label>
+        <label className="block text-sm sm:col-span-2">
+          <span className="mb-1 block font-medium">
+            Lead (optional, last 30 days for selected market)
+          </span>
+          <select
+            value={leadId}
+            onChange={(event) => applyLead(event.target.value)}
+            className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
+          >
+            <option value="">No lead selected</option>
+            {matchingLeads.map((lead) => (
+              <option key={lead.id} value={lead.id}>
+                {lead.name ?? "Unknown name"} - {lead.phone} -{" "}
+                {lead.city ?? "Unknown city"}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Channel</span>
+          <select
+            value={channel}
+            onChange={(event) =>
+              setChannel(event.target.value as "sms" | "email")
+            }
+            className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
+          >
+            <option value="sms">sms</option>
+            <option value="email">email</option>
+          </select>
+        </label>
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Contact Name</span>
+          <input
+            value={contactName}
+            onChange={(event) => setContactName(event.target.value)}
+            className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
+          />
+        </label>
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Phone</span>
+          <input
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
+          />
+        </label>
+        <label className="block text-sm sm:col-span-2">
+          <span className="mb-1 block font-medium">Email</span>
+          <input
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
+          />
+        </label>
+        <label className="block text-sm sm:col-span-2 lg:col-span-3">
+          <span className="mb-1 block font-medium">Message</span>
+          <textarea
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            className="min-h-24 w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
+          />
+        </label>
+        <label className="block text-sm sm:col-span-2 lg:col-span-3">
+          <span className="mb-1 block font-medium">Notes</span>
+          <textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            className="min-h-20 w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
+          />
+        </label>
       </div>
-    </section>
+
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={generateTemplate}
+          className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+        >
+          Generate Compliant Template
+        </button>
+        <button
+          type="button"
+          onClick={() => void saveDraft()}
+          className="inline-flex items-center justify-center rounded-md border border-foreground bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+        >
+          Save Draft
+        </button>
+        {saveMessage ? (
+          <span className="text-sm text-black/70 dark:text-white/70">
+            {saveMessage}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+
+function ReviewRequestTable({ rows }: { rows: ReviewRequest[] }) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/15">
+      <table className="min-w-full text-left text-sm">
+        <thead className="border-b border-black/10 dark:border-white/15">
+          <tr>
+            <th className="px-3 py-2">created_at</th>
+            <th className="px-3 py-2">market</th>
+            <th className="px-3 py-2">channel</th>
+            <th className="px-3 py-2">contact</th>
+            <th className="px-3 py-2">status</th>
+            <th className="px-3 py-2">message</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr
+              key={row.id}
+              className="border-b border-black/5 align-top dark:border-white/10"
+            >
+              <td className="px-3 py-2">
+                {new Date(row.created_at).toLocaleString()}
+              </td>
+              <td className="px-3 py-2">{row.market}</td>
+              <td className="px-3 py-2">{row.channel ?? ""}</td>
+              <td className="px-3 py-2">
+                {row.contact_name ?? ""} {row.phone ? `(${row.phone})` : ""}
+              </td>
+              <td className="px-3 py-2">{row.status ?? ""}</td>
+              <td className="px-3 py-2">{row.message ?? ""}</td>
+            </tr>
+          ))}
+          {rows.length === 0 ? (
+            <tr>
+              <td
+                colSpan={6}
+                className="px-3 py-4 text-center text-black/60 dark:text-white/60"
+              >
+                No review request drafts yet.
+              </td>
+            </tr>
+          ) : null}
+        </tbody>
+      </table>
+    </div>
   );
 }
