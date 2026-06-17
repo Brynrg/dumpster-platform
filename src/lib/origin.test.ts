@@ -12,9 +12,7 @@ import { headers } from "next/headers";
 
 describe("getRequestOrigin", () => {
   it("should return localhost:3000 when no host headers are present", async () => {
-    vi.mocked(headers).mockResolvedValue(
-      new Map() as any
-    );
+    vi.mocked(headers).mockResolvedValue(new Map() as unknown as Headers);
 
     const origin = await getRequestOrigin();
     expect(origin).toBe("http://localhost:3000");
@@ -25,7 +23,7 @@ describe("getRequestOrigin", () => {
       new Map([
         ["x-forwarded-host", "example.com"],
         ["x-forwarded-proto", "http"],
-      ]) as any
+      ]) as unknown as Headers,
     );
 
     const origin = await getRequestOrigin();
@@ -34,9 +32,7 @@ describe("getRequestOrigin", () => {
 
   it("should fall back to host and default proto if x-forwarded-* are not present", async () => {
     vi.mocked(headers).mockResolvedValue(
-      new Map([
-        ["host", "fallback.com"],
-      ]) as any
+      new Map([["host", "fallback.com"]]) as unknown as Headers,
     );
 
     const origin = await getRequestOrigin();
