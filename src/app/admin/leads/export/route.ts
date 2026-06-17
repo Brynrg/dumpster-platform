@@ -16,66 +16,91 @@ export async function GET(request: Request) {
   const dateTo = url.searchParams.get("date_to") ?? "";
   const notified = url.searchParams.get("notified") ?? "";
 
+  const header = [
+    "created_at",
+    "region",
+    "product",
+    "zip",
+    "requested_date",
+    "urgency",
+    "duration",
+    "material_type",
+    "name",
+    "phone",
+    "email",
+    "notified",
+  ];
+
   try {
     const supabase = getSupabaseAdmin();
-    let query = supabase
-      .from("leads")
-      .select(
-        "created_at,region,product,zip,requested_date,urgency,duration,material_type,name,phone,email,notified",
-      )
-      .order("created_at", { ascending: false });
 
-    if (region) query = query.eq("region", region);
-    if (product) query = query.eq("product", product);
-    if (zip) query = query.ilike("zip", `%${zip}%`);
-    if (dateFrom) query = query.gte("requested_date", dateFrom);
-    if (dateTo) query = query.lte("requested_date", dateTo);
-    if (notified === "true") query = query.eq("notified", true);
-    if (notified === "false") query = query.eq("notified", false);
+    const stream = new ReadableStream({
+      async start(controller) {
+        controller.enqueue(new TextEncoder().encode(header.join(",") + "\n"));
 
-    const { data, error } = await query.limit(5000);
-    if (error) {
-      return NextResponse.json(
-        { ok: false, error: "Failed to export leads." },
-        { status: 500 },
-      );
-    }
+        let startIdx = 0;
+        const PAGE_SIZE = 1000;
+        let hasMore = true;
 
-    const header = [
-      "created_at",
-      "region",
-      "product",
-      "zip",
-      "requested_date",
-      "urgency",
-      "duration",
-      "material_type",
-      "name",
-      "phone",
-      "email",
-      "notified",
-    ];
+        while (hasMore) {
+          let query = supabase
+            .from("leads")
+            .select(
+              "created_at,region,product,zip,requested_date,urgency,duration,material_type,name,phone,email,notified",
+            )
+            .order("created_at", { ascending: false });
 
-    const rows = (data ?? []).map((lead) =>
-      [
-        csvEscape(String(lead.created_at ?? "")),
-        csvEscape(String(lead.region ?? "")),
-        csvEscape(String(lead.product ?? "")),
-        csvEscape(String(lead.zip ?? "")),
-        csvEscape(String(lead.requested_date ?? "")),
-        csvEscape(String(lead.urgency ?? "")),
-        csvEscape(String(lead.duration ?? "")),
-        csvEscape(String(lead.material_type ?? "")),
-        csvEscape(String(lead.name ?? "")),
-        csvEscape(String(lead.phone ?? "")),
-        csvEscape(String(lead.email ?? "")),
-        csvEscape(String(lead.notified ?? "")),
-      ].join(","),
-    );
+          if (region) query = query.eq("region", region);
+          if (product) query = query.eq("product", product);
+          if (zip) query = query.ilike("zip", `%${zip}%`);
+          if (dateFrom) query = query.gte("requested_date", dateFrom);
+          if (dateTo) query = query.lte("requested_date", dateTo);
+          if (notified === "true") query = query.eq("notified", true);
+          if (notified === "false") query = query.eq("notified", false);
 
-    const csv = [header.join(","), ...rows].join("\n");
+          const { data, error } = await query.range(startIdx, startIdx + PAGE_SIZE - 1);
 
-    return new NextResponse(csv, {
+          if (error) {
+            controller.error(new Error(error.message));
+            break;
+          }
+
+          if (!data || data.length === 0) {
+            hasMore = false;
+            break;
+          }
+
+          const rows = data.map((lead) =>
+            [
+              csvEscape(String(lead.created_at ?? "")),
+              csvEscape(String(lead.region ?? "")),
+              csvEscape(String(lead.product ?? "")),
+              csvEscape(String(lead.zip ?? "")),
+              csvEscape(String(lead.requested_date ?? "")),
+              csvEscape(String(lead.urgency ?? "")),
+              csvEscape(String(lead.duration ?? "")),
+              csvEscape(String(lead.material_type ?? "")),
+              csvEscape(String(lead.name ?? "")),
+              csvEscape(String(lead.phone ?? "")),
+              csvEscape(String(lead.email ?? "")),
+              csvEscape(String(lead.notified ?? "")),
+            ].join(","),
+          );
+
+          controller.enqueue(new TextEncoder().encode(rows.join("\n") + "\n"));
+
+          if (data.length < PAGE_SIZE) {
+            hasMore = false;
+          } else {
+            startIdx += PAGE_SIZE;
+          }
+        }
+
+        controller.close();
+      },
+    });
+
+    return new NextResponse(stream, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": 'attachment; filename="leads.csv"',
