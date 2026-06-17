@@ -2,20 +2,13 @@
 
 import { useMemo, useState } from "react";
 import type { SeoTask } from "@/types/seo";
-
-type EditableTask = SeoTask & {
-  saveState?: string;
-};
+import SeoTaskRow, { type EditableTask } from "./SeoTaskRow";
+import { MARKETS, CATEGORIES, CADENCES, STATUSES } from "@/lib/seo-constants";
 
 type Props = {
   tasks: SeoTask[];
   initialMarket: string;
 };
-
-const MARKETS = ["tx-spring", "tx-north-houston", "fl-brevard"] as const;
-const CATEGORIES = ["gbp", "reviews", "citations", "content", "maps"] as const;
-const CADENCES = ["weekly", "monthly", "quarterly", "one_time"] as const;
-const STATUSES = ["todo", "doing", "done", "skipped"] as const;
 
 export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
   const [taskRows, setTaskRows] = useState<EditableTask[]>(tasks);
@@ -291,135 +284,12 @@ export default function SeoTasksBoard({ tasks, initialMarket }: Props) {
 
         <div className="mt-4 space-y-3">
           {filteredTasks.map((task) => (
-            <article
+            <SeoTaskRow
               key={task.id}
-              className="rounded-lg border border-black/10 p-4 text-sm dark:border-white/15"
-            >
-              <div className="grid gap-3 lg:grid-cols-5">
-                <label className="block">
-                  <span className="mb-1 block font-medium">Market</span>
-                  <select
-                    value={task.market}
-                    onChange={(event) =>
-                      patchTask(task.id, {
-                        market: event.target.value as SeoTask["market"],
-                      })
-                    }
-                    className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-                  >
-                    {MARKETS.map((market) => (
-                      <option key={market} value={market}>
-                        {market}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block font-medium">Category</span>
-                  <select
-                    value={task.category}
-                    onChange={(event) =>
-                      patchTask(task.id, {
-                        category: event.target.value as SeoTask["category"],
-                      })
-                    }
-                    className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-                  >
-                    {CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block font-medium">Status</span>
-                  <select
-                    value={task.status}
-                    onChange={(event) =>
-                      patchTask(task.id, {
-                        status: event.target.value as SeoTask["status"],
-                      })
-                    }
-                    className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-                  >
-                    {STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block font-medium">Cadence</span>
-                  <select
-                    value={task.cadence ?? ""}
-                    onChange={(event) =>
-                      patchTask(task.id, {
-                        cadence: event.target.value
-                          ? (event.target.value as SeoTask["cadence"])
-                          : null,
-                      })
-                    }
-                    className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-                  >
-                    <option value="">none</option>
-                    {CADENCES.map((cadence) => (
-                      <option key={cadence} value={cadence}>
-                        {cadence}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block font-medium">Due Date</span>
-                  <input
-                    type="date"
-                    value={task.due_date ?? ""}
-                    onChange={(event) =>
-                      patchTask(task.id, {
-                        due_date: event.target.value || null,
-                      })
-                    }
-                    className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-                  />
-                </label>
-                <label className="block lg:col-span-4">
-                  <span className="mb-1 block font-medium">Title</span>
-                  <input
-                    value={task.title}
-                    onChange={(event) =>
-                      patchTask(task.id, { title: event.target.value })
-                    }
-                    className="w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-                  />
-                </label>
-                <label className="block lg:col-span-5">
-                  <span className="mb-1 block font-medium">Notes</span>
-                  <textarea
-                    value={task.notes ?? ""}
-                    onChange={(event) =>
-                      patchTask(task.id, { notes: event.target.value || null })
-                    }
-                    className="min-h-20 w-full rounded-md border border-black/20 bg-transparent px-3 py-2 dark:border-white/25"
-                  />
-                </label>
-              </div>
-              <div className="mt-3 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => void saveTask(task)}
-                  className="inline-flex items-center justify-center rounded-md border border-foreground bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-                >
-                  Save
-                </button>
-                {task.saveState ? (
-                  <span className="text-sm text-black/70 dark:text-white/70">
-                    {task.saveState}
-                  </span>
-                ) : null}
-              </div>
-            </article>
+              task={task}
+              onPatch={(patch) => patchTask(task.id, patch)}
+              onSave={() => void saveTask(task)}
+            />
           ))}
 
           {filteredTasks.length === 0 ? (
