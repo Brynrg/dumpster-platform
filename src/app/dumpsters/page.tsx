@@ -3,6 +3,7 @@ import Link from "next/link";
 import Canonical from "@/components/Canonical";
 import TrustBadges from "@/components/TrustBadges";
 import Button from "@/components/ui/Button";
+import ContainerOptions from "@/components/ContainerOptions";
 
 type DumpstersPageProps = {
   searchParams: Promise<{ region?: string | string[] }>;
@@ -65,33 +66,22 @@ export default async function DumpstersPage({
       <section>
         <h2 className="text-2xl font-semibold">Choose a Size</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          {[
-            {
-              title: "Dump Trailer",
-              detail: "Driveway-friendly for smaller cleanouts and landscaping.",
-            },
-            {
-              title: "20-Yard Dumpster",
-              detail: "Balanced option for mid-size cleanouts and small remodels.",
-            },
-            {
-              title: "30-Yard Dumpster",
-              detail: "High-capacity option for roofing and larger remodel projects.",
-            },
-          ].map((option) => (
-            <article key={option.title} className="rounded-lg border border-black/10 p-4 dark:border-white/15">
-              <h3 className="font-medium">{option.title}</h3>
-              <p className="mt-2 text-sm text-black/70 dark:text-white/70">{option.detail}</p>
-              <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                <Link href="/check" className="underline underline-offset-4">
-                  Check Availability
-                </Link>
-                <Link href="/service-areas" className="underline underline-offset-4">
-                  See Service Areas
-                </Link>
-              </div>
-            </article>
-          ))}
+          <ContainerOptions
+            options={[
+              {
+                title: "Dump Trailer",
+                detail: "Driveway-friendly for smaller cleanouts and landscaping.",
+              },
+              {
+                title: "20-Yard Dumpster",
+                detail: "Balanced option for mid-size cleanouts and small remodels.",
+              },
+              {
+                title: "30-Yard Dumpster",
+                detail: "High-capacity option for roofing and larger remodel projects.",
+              },
+            ]}
+          />
         </div>
       </section>
 
