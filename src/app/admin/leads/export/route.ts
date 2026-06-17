@@ -1,6 +1,57 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
+interface LeadExportData {
+  created_at: string | null;
+  region: string | null;
+  product: string | null;
+  zip: string | null;
+  requested_date: string | null;
+  urgency: string | null;
+  duration: string | null;
+  material_type: string | null;
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  notified: boolean | null;
+}
+
+function generateCsv(data: LeadExportData[] | null) {
+  const header = [
+    "created_at",
+    "region",
+    "product",
+    "zip",
+    "requested_date",
+    "urgency",
+    "duration",
+    "material_type",
+    "name",
+    "phone",
+    "email",
+    "notified",
+  ];
+
+  const rows = (data ?? []).map((lead) =>
+    [
+      csvEscape(String(lead.created_at ?? "")),
+      csvEscape(String(lead.region ?? "")),
+      csvEscape(String(lead.product ?? "")),
+      csvEscape(String(lead.zip ?? "")),
+      csvEscape(String(lead.requested_date ?? "")),
+      csvEscape(String(lead.urgency ?? "")),
+      csvEscape(String(lead.duration ?? "")),
+      csvEscape(String(lead.material_type ?? "")),
+      csvEscape(String(lead.name ?? "")),
+      csvEscape(String(lead.phone ?? "")),
+      csvEscape(String(lead.email ?? "")),
+      csvEscape(String(lead.notified ?? "")),
+    ].join(","),
+  );
+
+  return [header.join(","), ...rows].join("\n");
+}
+
 function csvEscape(value: string | null | undefined) {
   const raw = value ?? "";
   const escaped = raw.replace(/"/g, '""');
@@ -41,39 +92,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const header = [
-      "created_at",
-      "region",
-      "product",
-      "zip",
-      "requested_date",
-      "urgency",
-      "duration",
-      "material_type",
-      "name",
-      "phone",
-      "email",
-      "notified",
-    ];
-
-    const rows = (data ?? []).map((lead) =>
-      [
-        csvEscape(String(lead.created_at ?? "")),
-        csvEscape(String(lead.region ?? "")),
-        csvEscape(String(lead.product ?? "")),
-        csvEscape(String(lead.zip ?? "")),
-        csvEscape(String(lead.requested_date ?? "")),
-        csvEscape(String(lead.urgency ?? "")),
-        csvEscape(String(lead.duration ?? "")),
-        csvEscape(String(lead.material_type ?? "")),
-        csvEscape(String(lead.name ?? "")),
-        csvEscape(String(lead.phone ?? "")),
-        csvEscape(String(lead.email ?? "")),
-        csvEscape(String(lead.notified ?? "")),
-      ].join(","),
-    );
-
-    const csv = [header.join(","), ...rows].join("\n");
+    const csv = generateCsv(data);
 
     return new NextResponse(csv, {
       headers: {
