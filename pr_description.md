@@ -1,4 +1,0 @@
-🎯 **What:** Splitting the large `CheckFunnel` React component into smaller, more focused sub-components. Extracted form-related types to `types.ts` and moved each funnel step into its own dedicated component in `src/components/check/steps/`.
-💡 **Why:** This greatly reduces the length and complexity of `CheckFunnel.tsx`, making it much easier to read, maintain, and test. By decoupling the step markup into individual components, we follow standard React practices and limit the responsibilities of the main funnel component.
-✅ **Verification:** I successfully ran formatting, lint checks, and the test suite. `npx vitest run` confirmed 11 passing tests. `CheckFunnel.tsx` has been shortened from 275 lines to 183 lines, and it renders the extracted step components accurately without changing its behavior.
-✨ **Result:** Improved codebase maintainability and readability without introducing regressions or altering existing functionality.
