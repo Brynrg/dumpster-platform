@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { isAuthedAdmin } from "@/lib/adminSession";
 
 function csvEscape(value: string | null | undefined) {
   const raw = value ?? "";
@@ -7,7 +9,13 @@ function csvEscape(value: string | null | undefined) {
   return `"${escaped}"`;
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Defense in depth: middleware already gates /admin/*, but this endpoint
+  // streams full lead PII, so it verifies the signed session itself too.
+  if (!(await isAuthedAdmin(request))) {
+    return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
+  }
+
   const url = new URL(request.url);
   const region = url.searchParams.get("region") ?? "";
   const product = url.searchParams.get("product") ?? "";
