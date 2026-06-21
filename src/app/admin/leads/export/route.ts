@@ -4,7 +4,12 @@ import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { isAuthedAdmin } from "@/lib/adminSession";
 
 function csvEscape(value: string | null | undefined) {
-  const raw = value ?? "";
+  let raw = value ?? "";
+  // Neutralize CSV/formula injection: cells starting with = + - @ (or
+  // leading tab/CR) are executed as formulas by Excel/Sheets. Prefix with '.
+  if (/^[=+\-@\t\r]/.test(raw)) {
+    raw = "'" + raw;
+  }
   const escaped = raw.replace(/"/g, '""');
   return `"${escaped}"`;
 }
