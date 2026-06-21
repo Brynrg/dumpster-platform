@@ -54,6 +54,59 @@ const initialState: FormState = {
 };
 
 
+
+function getStepErrors(step: number, form: FormState) {
+  const nextErrors: Record<string, string> = {};
+
+  switch (step) {
+    case 1:
+      if (!form.product) {
+        nextErrors.product = "Select a product option.";
+      }
+      return nextErrors;
+
+    case 2:
+      if (!form.street.trim()) nextErrors.street = "Street is required.";
+      if (!form.city.trim()) nextErrors.city = "City is required.";
+      if (!form.state.trim()) nextErrors.state = "State is required.";
+      if (!form.zip.trim()) nextErrors.zip = "ZIP is required.";
+      return nextErrors;
+
+    case 3:
+      if (!form.delivery_date) nextErrors.delivery_date = "Delivery date is required.";
+      if (!form.duration) nextErrors.duration = "Duration is required.";
+      if (!form.urgency) nextErrors.urgency = "Urgency is required.";
+      return nextErrors;
+
+    case 4:
+      if (!form.material_type) {
+        nextErrors.material_type = "Material type is required.";
+      }
+      return nextErrors;
+
+    case 5:
+      if (!form.name.trim()) nextErrors.name = "Name is required.";
+
+      if (!form.phone.trim()) {
+        nextErrors.phone = "Phone is required.";
+      } else if (!isValidPhone(form.phone)) {
+        nextErrors.phone = "Enter a valid phone number.";
+      }
+
+      if (form.email.trim() && !isValidEmail(form.email)) {
+        nextErrors.email = "Enter a valid email or leave blank.";
+      }
+
+      if (!form.sms_opt_in) {
+        nextErrors.sms_opt_in = "SMS opt-in is required to proceed.";
+      }
+      return nextErrors;
+
+    default:
+      return nextErrors;
+  }
+}
+
 type CheckFunnelProps = {
   initialRegion: string;
 };
@@ -78,42 +131,7 @@ export default function CheckFunnel({ initialRegion }: CheckFunnelProps) {
   }
 
   function validateCurrentStep() {
-    const nextErrors: Record<string, string> = {};
-
-    if (step === 1 && !form.product) {
-      nextErrors.product = "Select a product option.";
-    }
-
-    if (step === 2) {
-      if (!form.street.trim()) nextErrors.street = "Street is required.";
-      if (!form.city.trim()) nextErrors.city = "City is required.";
-      if (!form.state.trim()) nextErrors.state = "State is required.";
-      if (!form.zip.trim()) nextErrors.zip = "ZIP is required.";
-    }
-
-    if (step === 3) {
-      if (!form.delivery_date) nextErrors.delivery_date = "Delivery date is required.";
-      if (!form.duration) nextErrors.duration = "Duration is required.";
-      if (!form.urgency) nextErrors.urgency = "Urgency is required.";
-    }
-
-    if (step === 4 && !form.material_type) {
-      nextErrors.material_type = "Material type is required.";
-    }
-
-    if (step === 5) {
-      if (!form.name.trim()) nextErrors.name = "Name is required.";
-      if (!form.phone.trim()) nextErrors.phone = "Phone is required.";
-      if (form.phone.trim() && !isValidPhone(form.phone)) {
-        nextErrors.phone = "Enter a valid phone number.";
-      }
-      if (form.email.trim() && !isValidEmail(form.email)) {
-        nextErrors.email = "Enter a valid email or leave blank.";
-      }
-      if (!form.sms_opt_in) {
-        nextErrors.sms_opt_in = "SMS opt-in is required to proceed.";
-      }
-    }
+    const nextErrors = getStepErrors(step, form);
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
