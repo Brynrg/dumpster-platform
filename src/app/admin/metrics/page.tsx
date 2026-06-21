@@ -3,7 +3,12 @@ import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-const PRODUCTS = ["dump_trailer", "dumpster_20", "dumpster_30", "not_sure"] as const;
+const PRODUCTS = [
+  "dump_trailer",
+  "dumpster_20",
+  "dumpster_30",
+  "not_sure",
+] as const;
 const NOW_MS = Date.now();
 
 function isoDaysAgo(days: number) {
@@ -16,27 +21,50 @@ export default async function AdminMetricsPage() {
   const since7 = isoDaysAgo(7);
   const since30 = isoDaysAgo(30);
 
-  const [totalRes, last7Res, last30Res, regionCounts, productCounts] = await Promise.all([
-    supabase.from("leads").select("id", { count: "exact", head: true }),
-    supabase
-      .from("leads")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", since7),
-    supabase
-      .from("leads")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", since30),
-    supabase.rpc("get_lead_counts_by_region", { region_ids: regions }).then(({ data, error }) => {
-      if (error) console.error("Error fetching region counts:", error);
-      const countsMap = new Map((data || []).map((r: any) => [r.region, Number(r.count)]));
-      return regions.map(r => [r, countsMap.get(r) || 0] as [string, number]);
-    }),
-    supabase.rpc("get_lead_counts_by_product", { product_ids: [...PRODUCTS] }).then(({ data, error }) => {
-      if (error) console.error("Error fetching product counts:", error);
-      const countsMap = new Map((data || []).map((r: any) => [r.product, Number(r.count)]));
-      return PRODUCTS.map(p => [p, countsMap.get(p) || 0] as [string, number]);
-    }),
-  ]);
+  const [totalRes, last7Res, last30Res, regionCounts, productCounts] =
+    await Promise.all([
+      supabase.from("leads").select("id", { count: "exact", head: true }),
+      supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since7),
+      supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since30),
+      supabase
+        .rpc("get_lead_counts_by_region", { region_ids: regions })
+        .then(({ data, error }) => {
+          if (error) console.error("Error fetching region counts:", error);
+          const countsMap = new Map(
+            (data || []).map(
+              (r: { region: string; count: string | number }) => [
+                r.region,
+                Number(r.count),
+              ],
+            ),
+          );
+          return regions.map(
+            (r) => [r, countsMap.get(r) || 0] as [string, number],
+          );
+        }),
+      supabase
+        .rpc("get_lead_counts_by_product", { product_ids: [...PRODUCTS] })
+        .then(({ data, error }) => {
+          if (error) console.error("Error fetching product counts:", error);
+          const countsMap = new Map(
+            (data || []).map(
+              (r: { product: string; count: string | number }) => [
+                r.product,
+                Number(r.count),
+              ],
+            ),
+          );
+          return PRODUCTS.map(
+            (p) => [p, countsMap.get(p) || 0] as [string, number],
+          );
+        }),
+    ]);
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
@@ -49,15 +77,21 @@ export default async function AdminMetricsPage() {
 
       <section className="grid gap-4 sm:grid-cols-3">
         <article className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-          <h2 className="text-sm font-medium text-black/70 dark:text-white/70">Total Leads</h2>
+          <h2 className="text-sm font-medium text-black/70 dark:text-white/70">
+            Total Leads
+          </h2>
           <p className="mt-2 text-2xl font-semibold">{totalRes.count ?? 0}</p>
         </article>
         <article className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-          <h2 className="text-sm font-medium text-black/70 dark:text-white/70">Leads Last 7 Days</h2>
+          <h2 className="text-sm font-medium text-black/70 dark:text-white/70">
+            Leads Last 7 Days
+          </h2>
           <p className="mt-2 text-2xl font-semibold">{last7Res.count ?? 0}</p>
         </article>
         <article className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-          <h2 className="text-sm font-medium text-black/70 dark:text-white/70">Leads Last 30 Days</h2>
+          <h2 className="text-sm font-medium text-black/70 dark:text-white/70">
+            Leads Last 30 Days
+          </h2>
           <p className="mt-2 text-2xl font-semibold">{last30Res.count ?? 0}</p>
         </article>
       </section>
@@ -66,7 +100,10 @@ export default async function AdminMetricsPage() {
         <h2 className="text-xl font-semibold">Breakdown by Region</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {regionCounts.map(([region, count]) => (
-            <li key={region} className="flex items-center justify-between border-b border-black/5 pb-2 dark:border-white/10">
+            <li
+              key={region}
+              className="flex items-center justify-between border-b border-black/5 pb-2 dark:border-white/10"
+            >
               <span>{region}</span>
               <strong>{count}</strong>
             </li>
@@ -78,7 +115,10 @@ export default async function AdminMetricsPage() {
         <h2 className="text-xl font-semibold">Breakdown by Product</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {productCounts.map(([product, count]) => (
-            <li key={product} className="flex items-center justify-between border-b border-black/5 pb-2 dark:border-white/10">
+            <li
+              key={product}
+              className="flex items-center justify-between border-b border-black/5 pb-2 dark:border-white/10"
+            >
               <span>{product}</span>
               <strong>{count}</strong>
             </li>

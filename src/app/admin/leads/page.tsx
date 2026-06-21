@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { AdminNavigation } from "@/components/admin/AdminNavigation";
+
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 type SearchParams = {
@@ -87,47 +89,20 @@ export default async function AdminLeadsPage({
     <main className="mx-auto max-w-7xl px-6 py-12">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">Admin Leads</h1>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/admin/pricing"
-            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
-          >
-            Pricing Model
-          </Link>
-          <Link
-            href="/admin/disposal"
-            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
-          >
-            Disposal Intel
-          </Link>
-          <Link
-            href="/admin/seo"
-            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
-          >
-            Local SEO Ops
-          </Link>
-          <Link
-            href="/admin/metrics"
-            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
-          >
-            Metrics
-          </Link>
-          <Link
-            href="/admin/notify"
-            className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
-          >
-            Notify Leads
-          </Link>
+        <AdminNavigation>
           <Link
             href={exportHref}
             className="inline-flex items-center justify-center rounded-md border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
           >
             Export CSV
           </Link>
-        </div>
+        </AdminNavigation>
       </header>
 
-      <form method="get" className="mb-6 grid gap-3 rounded-xl border border-black/10 p-4 sm:grid-cols-3 dark:border-white/15">
+      <form
+        method="get"
+        className="mb-6 grid gap-3 rounded-xl border border-black/10 p-4 sm:grid-cols-3 dark:border-white/15"
+      >
         <input
           name="region"
           defaultValue={region}
@@ -200,8 +175,13 @@ export default async function AdminLeadsPage({
             </thead>
             <tbody>
               {leads.map((lead) => (
-                <tr key={lead.id} className="border-b border-black/5 align-top dark:border-white/10">
-                  <td className="px-3 py-2">{new Date(lead.created_at).toLocaleString()}</td>
+                <tr
+                  key={lead.id}
+                  className="border-b border-black/5 align-top dark:border-white/10"
+                >
+                  <td className="px-3 py-2">
+                    {new Date(lead.created_at).toLocaleString()}
+                  </td>
                   <td className="px-3 py-2">{lead.region}</td>
                   <td className="px-3 py-2">{lead.product}</td>
                   <td className="px-3 py-2">{lead.zip ?? ""}</td>
@@ -212,12 +192,17 @@ export default async function AdminLeadsPage({
                   <td className="px-3 py-2">{lead.name ?? ""}</td>
                   <td className="px-3 py-2">{lead.phone}</td>
                   <td className="px-3 py-2">{lead.email ?? ""}</td>
-                  <td className="px-3 py-2">{String(Boolean(lead.notified))}</td>
+                  <td className="px-3 py-2">
+                    {String(Boolean(lead.notified))}
+                  </td>
                 </tr>
               ))}
               {leads.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="px-3 py-4 text-center text-black/60 dark:text-white/60">
+                  <td
+                    colSpan={12}
+                    className="px-3 py-4 text-center text-black/60 dark:text-white/60"
+                  >
                     No leads found for current filters.
                   </td>
                 </tr>
