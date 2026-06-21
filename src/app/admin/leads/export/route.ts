@@ -41,9 +41,10 @@ export async function GET(request: Request) {
 
         let page = 0;
         const pageSize = 1000;
+        const maxPages = 50; // Hard cap of 50 pages (50,000 records) to prevent unbounded loops
         let hasMore = true;
 
-        while (hasMore) {
+        while (hasMore && page < maxPages) {
           let query = supabase
             .from("leads")
             .select(
