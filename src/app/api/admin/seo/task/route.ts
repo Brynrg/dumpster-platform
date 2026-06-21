@@ -1,3 +1,4 @@
+import { isAuthedAdmin } from "@/lib/adminSession";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -25,7 +26,7 @@ const ALLOWED_CADENCE = new Set(["weekly", "monthly", "quarterly", "one_time"]);
 const ALLOWED_STATUS = new Set(["todo", "doing", "done", "skipped"]);
 
 export async function POST(request: NextRequest) {
-  if (request.cookies.get("admin")?.value !== "1") {
+  if (!(await isAuthedAdmin(request))) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 

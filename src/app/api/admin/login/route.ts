@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+import {
+  ADMIN_SESSION_COOKIE,
+  ADMIN_SESSION_MAX_AGE,
+  createAdminSession,
+  timingSafeEqual,
+} from "@/lib/adminSession";
 
 export async function POST(request: Request) {
   const adminToken = process.env.ADMIN_TOKEN;
@@ -20,7 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!body.token || body.token !== adminToken) {
+  if (!body.token || !timingSafeEqual(body.token, adminToken)) {
     return NextResponse.json(
       { ok: false, error: "Invalid admin token." },
       { status: 401 },
@@ -28,12 +34,12 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ ok: true });
-  response.cookies.set("admin", "1", {
+  response.cookies.set(ADMIN_SESSION_COOKIE, await createAdminSession(), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 8,
+    maxAge: ADMIN_SESSION_MAX_AGE,
   });
 
   return response;

@@ -1,3 +1,4 @@
+import { isAuthedAdmin } from "@/lib/adminSession";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -19,7 +20,7 @@ type FacilityPayload = {
 };
 
 export async function POST(request: NextRequest) {
-  if (request.cookies.get("admin")?.value !== "1") {
+  if (!(await isAuthedAdmin(request))) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 
