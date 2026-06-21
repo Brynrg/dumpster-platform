@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { track } from "./analytics";
 
 describe("analytics track", () => {
-  const originalEnv = process.env.NODE_ENV;
   let gtagMock: ReturnType<typeof vi.fn>;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
@@ -15,7 +14,7 @@ describe("analytics track", () => {
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = originalEnv;
+    vi.unstubAllEnvs();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -42,19 +41,19 @@ describe("analytics track", () => {
   });
 
   it("should call console.log in non-production environments", () => {
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     track("dev_event", { dev: true });
     expect(consoleSpy).toHaveBeenCalledWith("[track]", "dev_event", { dev: true });
   });
 
   it("should default props to empty object in console.log", () => {
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     track("dev_event");
     expect(consoleSpy).toHaveBeenCalledWith("[track]", "dev_event", {});
   });
 
   it("should not call console.log in production environments", () => {
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     track("prod_event");
     expect(consoleSpy).not.toHaveBeenCalled();
   });

@@ -1,11 +1,19 @@
 import { POST } from "./route";
+import { ADMIN_SESSION_COOKIE, createAdminSession } from "@/lib/adminSession";
+
+const SECRET = "test-secret-at-least-32-characters-long!!";
 
 describe("POST /api/admin/seo/task", () => {
+  beforeEach(() => {
+    process.env.ADMIN_SESSION_SECRET = SECRET;
+  });
+  afterEach(() => {
+    delete process.env.ADMIN_SESSION_SECRET;
+  });
+
   it("should return 401 if unauthorized", async () => {
     const mockRequest = {
-      cookies: {
-        get: () => undefined,
-      },
+      cookies: { get: () => undefined },
       json: async () => ({}),
     } as any;
 
@@ -17,12 +25,11 @@ describe("POST /api/admin/seo/task", () => {
   });
 
   it("should return 400 if JSON payload is invalid", async () => {
+    const token = await createAdminSession();
     const mockRequest = {
       cookies: {
-        get: (name: string) => {
-          if (name === "admin") return { value: "1" };
-          return undefined;
-        },
+        get: (name: string) =>
+          name === ADMIN_SESSION_COOKIE ? { value: token } : undefined,
       },
       json: async () => {
         throw new Error("Unexpected end of JSON input");
