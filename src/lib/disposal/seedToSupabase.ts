@@ -90,6 +90,32 @@ export async function seedDisposalData(): Promise<{
     facilityIdByKey.set(`${facility.market}::${facility.name}`, facilityId);
   }
 
+
+  const facilityIds = Array.from(new Set(facilityIdByKey.values()));
+
+  const existingRatesMap = new Map<string, RateRow>();
+
+  if (facilityIds.length > 0) {
+    const { data: allExistingRates, error: ratesError } = await supabase
+      .from("disposal_rates")
+      .select("id, facility_id, material_category, unit, effective_date")
+      .in("facility_id", facilityIds);
+
+    if (ratesError) {
+      throw new Error(`Failed to query existing rates: ${ratesError.message}`);
+    }
+
+    if (allExistingRates) {
+      for (const rate of allExistingRates) {
+        const key = `${rate.facility_id}::${rate.material_category}::${rate.unit}::${rate.effective_date || ''}`;
+        existingRatesMap.set(key, rate as RateRow);
+      }
+    }
+  }
+
+  const ratesToInsert: Record<string, unknown>[] = [];
+  const ratesToUpsert: Record<string, unknown>[] = [];
+
   for (const rate of ratesSeed) {
     const facilityId = facilityIdByKey.get(`${rate.market}::${rate.facility_name}`);
     if (!facilityId) {
@@ -97,39 +123,13 @@ export async function seedDisposalData(): Promise<{
     }
 
     const effectiveDate = rate.effective_date || null;
-    const { data: existingData, error: existingError } = await supabase
-      .from("disposal_rates")
-      .select("id")
-      .eq("facility_id", facilityId)
-      .eq("material_category", rate.material_category)
-      .eq("unit", rate.unit)
-      .eq("effective_date", effectiveDate)
-      .maybeSingle();
+    const key = `${facilityId}::${rate.material_category}::${rate.unit}::${effectiveDate || ''}`;
 
-    if (existingError) {
-      throw new Error(
-        `Failed to query rate "${rate.material_category}" for "${rate.facility_name}": ${existingError.message}`,
-      );
-    }
+    const existingRate = existingRatesMap.get(key);
 
-    if (existingData) {
-      const existing = existingData as RateRow;
-      const { error: updateError } = await supabase
-        .from("disposal_rates")
-        .update({
-          price: rate.price,
-          source_url: rate.source_url || null,
-          source_notes: rate.source_notes || null,
-        })
-        .eq("id", existing.id);
-
-      if (updateError) {
-        throw new Error(
-          `Failed to update rate "${rate.material_category}" for "${rate.facility_name}".`,
-        );
-      }
-    } else {
-      const { error: insertError } = await supabase.from("disposal_rates").insert({
+    if (existingRate) {
+      ratesToUpsert.push({
+        id: existingRate.id,
         facility_id: facilityId,
         material_category: rate.material_category,
         price: rate.price,
@@ -138,13 +138,37 @@ export async function seedDisposalData(): Promise<{
         source_url: rate.source_url || null,
         source_notes: rate.source_notes || null,
       });
-
-      if (insertError) {
-        throw new Error(
-          `Failed to insert rate "${rate.material_category}" for "${rate.facility_name}".`,
-        );
-      }
+    } else {
+      ratesToInsert.push({
+        facility_id: facilityId,
+        material_category: rate.material_category,
+        price: rate.price,
+        unit: rate.unit,
+        effective_date: effectiveDate,
+        source_url: rate.source_url || null,
+        source_notes: rate.source_notes || null,
+      });
       ratesCount += 1;
+    }
+  }
+
+  if (ratesToUpsert.length > 0) {
+    const { error: upsertError } = await supabase
+      .from("disposal_rates")
+      .upsert(ratesToUpsert);
+
+    if (upsertError) {
+      throw new Error(`Failed to bulk update rates: ${upsertError.message}`);
+    }
+  }
+
+  if (ratesToInsert.length > 0) {
+    const { error: insertError } = await supabase
+      .from("disposal_rates")
+      .insert(ratesToInsert);
+
+    if (insertError) {
+      throw new Error(`Failed to bulk insert rates: ${insertError.message}`);
     }
   }
 
