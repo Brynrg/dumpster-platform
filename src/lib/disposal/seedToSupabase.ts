@@ -11,6 +11,10 @@ type FacilityRow = {
 
 type RateRow = {
   id: string;
+  facility_id: string;
+  material_category: string;
+  unit: string;
+  effective_date: string | null;
 };
 
 export async function seedDisposalData(): Promise<{
@@ -22,23 +26,34 @@ export async function seedDisposalData(): Promise<{
   let facilitiesCount = 0;
   let ratesCount = 0;
 
+  // 1. Batch fetch all existing facilities for the relevant markets
+  const distinctMarkets = Array.from(new Set(facilitiesSeed.map((f) => f.market)));
+
+  const { data: existingFacilitiesData, error: existingFacilitiesError } = await supabase
+    .from("disposal_facilities")
+    .select("id,market,name,address1")
+    .in("market", distinctMarkets);
+
+  if (existingFacilitiesError) {
+    throw new Error(`Failed to query existing facilities: ${existingFacilitiesError.message}`);
+  }
+
+  const existingFacilitiesMap = new Map<string, FacilityRow>();
+  if (existingFacilitiesData) {
+    for (const row of existingFacilitiesData as FacilityRow[]) {
+      const address = row.address1 || "";
+      const key = `${row.market}::${row.name}::${address}`;
+      existingFacilitiesMap.set(key, row);
+    }
+  }
+
   for (const facility of facilitiesSeed) {
     const address = facility.address1 || "";
-    const { data: existingData, error: existingError } = await supabase
-      .from("disposal_facilities")
-      .select("id,market,name,address1")
-      .eq("market", facility.market)
-      .eq("name", facility.name)
-      .eq("address1", address)
-      .maybeSingle();
-
-    if (existingError) {
-      throw new Error(`Failed to query facility "${facility.name}": ${existingError.message}`);
-    }
+    const key = `${facility.market}::${facility.name}::${address}`;
+    const existingData = existingFacilitiesMap.get(key);
 
     let facilityId: string;
     if (existingData) {
-      const existing = existingData as FacilityRow;
       const { data: updatedData, error: updateError } = await supabase
         .from("disposal_facilities")
         .update({
@@ -52,7 +67,7 @@ export async function seedDisposalData(): Promise<{
           notes: facility.notes,
           last_verified: facility.last_verified || null,
         })
-        .eq("id", existing.id)
+        .eq("id", existingData.id)
         .select("id")
         .single();
 
@@ -90,6 +105,29 @@ export async function seedDisposalData(): Promise<{
     facilityIdByKey.set(`${facility.market}::${facility.name}`, facilityId);
   }
 
+  // 2. Batch fetch all existing rates for the relevant facilities
+  const facilityIds = Array.from(facilityIdByKey.values());
+
+  const existingRatesMap = new Map<string, RateRow>();
+  if (facilityIds.length > 0) {
+    const { data: existingRatesData, error: existingRatesError } = await supabase
+      .from("disposal_rates")
+      .select("id,facility_id,material_category,unit,effective_date")
+      .in("facility_id", facilityIds);
+
+    if (existingRatesError) {
+      throw new Error(`Failed to query existing rates: ${existingRatesError.message}`);
+    }
+
+    if (existingRatesData) {
+      for (const row of existingRatesData as RateRow[]) {
+        const dateKey = row.effective_date || "null";
+        const key = `${row.facility_id}::${row.material_category}::${row.unit}::${dateKey}`;
+        existingRatesMap.set(key, row);
+      }
+    }
+  }
+
   for (const rate of ratesSeed) {
     const facilityId = facilityIdByKey.get(`${rate.market}::${rate.facility_name}`);
     if (!facilityId) {
@@ -97,23 +135,11 @@ export async function seedDisposalData(): Promise<{
     }
 
     const effectiveDate = rate.effective_date || null;
-    const { data: existingData, error: existingError } = await supabase
-      .from("disposal_rates")
-      .select("id")
-      .eq("facility_id", facilityId)
-      .eq("material_category", rate.material_category)
-      .eq("unit", rate.unit)
-      .eq("effective_date", effectiveDate)
-      .maybeSingle();
-
-    if (existingError) {
-      throw new Error(
-        `Failed to query rate "${rate.material_category}" for "${rate.facility_name}": ${existingError.message}`,
-      );
-    }
+    const dateKey = effectiveDate || "null";
+    const key = `${facilityId}::${rate.material_category}::${rate.unit}::${dateKey}`;
+    const existingData = existingRatesMap.get(key);
 
     if (existingData) {
-      const existing = existingData as RateRow;
       const { error: updateError } = await supabase
         .from("disposal_rates")
         .update({
@@ -121,7 +147,7 @@ export async function seedDisposalData(): Promise<{
           source_url: rate.source_url || null,
           source_notes: rate.source_notes || null,
         })
-        .eq("id", existing.id);
+        .eq("id", existingData.id);
 
       if (updateError) {
         throw new Error(
