@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { POST } from "./route";
 import { ADMIN_SESSION_COOKIE, createAdminSession } from "@/lib/adminSession";
 
@@ -46,7 +47,7 @@ describe("POST /api/admin/seo/citation", () => {
           name === ADMIN_SESSION_COOKIE && token ? { value: token } : undefined,
       },
       json: async () => payload,
-    } as unknown as Request;
+    } as unknown as NextRequest;
   };
 
   it("should return 401 if unauthorized", async () => {
@@ -68,7 +69,7 @@ describe("POST /api/admin/seo/citation", () => {
       json: async () => {
         throw new Error("Unexpected end of JSON input");
       },
-    } as unknown as Request;
+    } as unknown as NextRequest;
 
     const response = await POST(mockRequest);
 
