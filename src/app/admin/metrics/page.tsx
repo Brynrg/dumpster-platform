@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { getAllRegions } from "@/lib/regions";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
@@ -35,7 +36,7 @@ export default async function AdminMetricsPage() {
       supabase
         .rpc("get_lead_counts_by_region", { region_ids: regions })
         .then(({ data, error }) => {
-          if (error) console.error("Error fetching region counts:", error);
+          if (error) logger.error("Error fetching region counts:", error);
           const countsMap = new Map(
             (data || []).map(
               (r: { region: string; count: string | number }) => [
@@ -51,7 +52,7 @@ export default async function AdminMetricsPage() {
       supabase
         .rpc("get_lead_counts_by_product", { product_ids: [...PRODUCTS] })
         .then(({ data, error }) => {
-          if (error) console.error("Error fetching product counts:", error);
+          if (error) logger.error("Error fetching product counts:", error);
           const countsMap = new Map(
             (data || []).map(
               (r: { product: string; count: string | number }) => [
