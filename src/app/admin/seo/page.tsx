@@ -32,15 +32,6 @@ type ExpansionRow = {
 const MARKETS = ["tx-spring", "tx-north-houston", "fl-brevard"] as const;
 const TABS = ["tasks", "reviews", "citations", "expansion"] as const;
 const WINDOWS = ["30", "60", "90"] as const;
-const DEFAULT_PROVIDERS = [
-  "Yelp",
-  "Bing Places",
-  "Apple Business Connect",
-  "Nextdoor",
-  "Angi",
-  "Thumbtack",
-  "Chamber",
-] as const;
 const NOW_MS = Date.now();
 
 function asSingle(value?: string | string[]) {
@@ -79,12 +70,6 @@ export default async function AdminSeoPage({
     : "30";
 
   const supabase = getSupabaseAdmin();
-
-  // Keep common citation rows present for each market/provider.
-  await supabase.from("citations").upsert(
-    DEFAULT_PROVIDERS.map((provider) => ({ market, provider })),
-    { onConflict: "market,provider" },
-  );
 
   const [tasksRes, reviewsRes, citationsRes, leadOptionsRes, expansionRes] =
     await Promise.all([
