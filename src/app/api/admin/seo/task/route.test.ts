@@ -1,5 +1,6 @@
 import { POST } from "./route";
 import { ADMIN_SESSION_COOKIE, createAdminSession } from "@/lib/adminSession";
+import { NextRequest } from "next/server";
 
 const SECRET = "test-secret-at-least-32-characters-long!!";
 
@@ -15,7 +16,7 @@ describe("POST /api/admin/seo/task", () => {
     const mockRequest = {
       cookies: { get: () => undefined },
       json: async () => ({}),
-    } as any;
+    } as unknown as NextRequest;
 
     const response = await POST(mockRequest);
 
@@ -34,7 +35,7 @@ describe("POST /api/admin/seo/task", () => {
       json: async () => {
         throw new Error("Unexpected end of JSON input");
       },
-    } as any;
+    } as unknown as NextRequest;
 
     const response = await POST(mockRequest);
 
