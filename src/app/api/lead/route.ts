@@ -101,7 +101,10 @@ export async function POST(request: Request) {
         normalizedPhone,
         "Request received — we’ll text you when availability opens in your area. Reply STOP to opt out.",
       ).catch((smsError) => {
-        console.error("Lead confirmation SMS failed", smsError);
+        console.error(
+          "Lead confirmation SMS failed",
+          smsError instanceof Error ? smsError.message : "Unknown error",
+        );
       });
     }
 
