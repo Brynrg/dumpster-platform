@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { POST } from "./route";
 import { ADMIN_SESSION_COOKIE, createAdminSession } from "@/lib/adminSession";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -37,7 +38,7 @@ describe("POST /api/admin/pricing", () => {
     const mockRequest = {
       cookies: { get: () => undefined },
       json: async () => ({}),
-    } as unknown as Request;
+    } as unknown as NextRequest;
 
     const response = await POST(mockRequest);
 
@@ -56,7 +57,7 @@ describe("POST /api/admin/pricing", () => {
       json: async () => {
         throw new Error("Unexpected end of JSON input");
       },
-    } as unknown as Request;
+    } as unknown as NextRequest;
 
     const response = await POST(mockRequest);
 
@@ -73,7 +74,7 @@ describe("POST /api/admin/pricing", () => {
           name === ADMIN_SESSION_COOKIE ? { value: token } : undefined,
       },
       json: async () => ({ fuel_price: 3.5 }),
-    } as unknown as Request;
+    } as unknown as NextRequest;
 
     const response = await POST(mockRequest);
 
@@ -90,7 +91,7 @@ describe("POST /api/admin/pricing", () => {
           name === ADMIN_SESSION_COOKIE ? { value: token } : undefined,
       },
       json: async () => ({ region: "test-region", fuel_price: 3.5 }),
-    } as unknown as Request;
+    } as unknown as NextRequest;
 
     (mockSupabase.single as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: null,
@@ -115,7 +116,7 @@ describe("POST /api/admin/pricing", () => {
           name === ADMIN_SESSION_COOKIE ? { value: token } : undefined,
       },
       json: async () => ({ region: "test-region", fuel_price: 3.5 }),
-    } as unknown as Request;
+    } as unknown as NextRequest;
 
     (mockSupabase.single as ReturnType<typeof vi.fn>).mockImplementation(() => {
       throw new Error("Unexpected Error");
@@ -143,7 +144,7 @@ describe("POST /api/admin/pricing", () => {
         avg_mpg: "invalid", // should be null
         labor_cost: undefined, // should be null
       }),
-    } as unknown as Request;
+    } as unknown as NextRequest;
 
     const response = await POST(mockRequest);
 
