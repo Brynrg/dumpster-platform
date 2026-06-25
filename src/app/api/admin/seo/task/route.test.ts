@@ -15,7 +15,7 @@ describe("POST /api/admin/seo/task", () => {
     const mockRequest = {
       cookies: { get: () => undefined },
       json: async () => ({}),
-    } as any;
+    } as unknown as Request;
 
     const response = await POST(mockRequest);
 
@@ -34,7 +34,7 @@ describe("POST /api/admin/seo/task", () => {
       json: async () => {
         throw new Error("Unexpected end of JSON input");
       },
-    } as any;
+    } as unknown as Request;
 
     const response = await POST(mockRequest);
 
