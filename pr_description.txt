@@ -1,0 +1,18 @@
+🎯 **What:**
+Added integration tests for the SEO review API route (`src/app/api/admin/seo/review/route.ts`). This route lacked sufficient testing for validation logic and its interaction with Supabase to insert and update review requests. Also fixed linting issues related to `any` types in test files.
+
+📊 **Coverage:**
+The following scenarios are now covered by unit tests:
+- Returns 401 if the user is unauthorized.
+- Returns 400 if the provided JSON payload is invalid.
+- Returns 400 for invalid market strings.
+- Returns 400 for invalid channel strings.
+- Returns 400 for invalid status strings.
+- Successfully updates an existing review request and verifies the correct database row is updated.
+- Gracefully handles database errors when updating an existing review request (returns 500).
+- Successfully inserts a new review request and verifies the correct data is saved.
+- Gracefully handles database errors when inserting a new review request (returns 500).
+- Handles unexpected errors gracefully with a 500 status code.
+
+✨ **Result:**
+The `src/app/api/admin/seo/review/route.ts` API endpoint is now thoroughly tested, providing a safety net against future regressions and enhancing the overall reliability of the admin functionality. Test file `any` types were also resolved to align with the project's strict type rules.
