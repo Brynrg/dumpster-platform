@@ -185,73 +185,71 @@ export async function POST(request: NextRequest) {
     let skippedCount = 0;
     let failedCount = 0;
 
-    const BATCH_SIZE = 50;
-    for (let i = 0; i < leads.length; i += BATCH_SIZE) {
-      const batch = leads.slice(i, i + BATCH_SIZE);
+    let leadIndex = 0;
+    const CONCURRENCY_LIMIT = 50;
 
-      const promises = batch.map(async (lead) => {
+    const worker = async () => {
+      while (leadIndex < leads.length) {
+        const lead = leads[leadIndex++];
+        let row;
+
         if (lead.sms_opt_in !== true) {
-          return {
+          row = {
             lead_id: lead.id,
             status: "skipped" as const,
             error: "sms_opt_in is false",
             sms_sid: null,
           };
-        }
-
-        if (dryRun) {
-          return {
+        } else if (dryRun) {
+          row = {
             lead_id: lead.id,
             status: "skipped" as const,
             error: "dry_run",
             sms_sid: null,
           };
-        }
-
-        try {
-          const sms = await sendSms(lead.phone, messageTemplate);
-          return {
-            lead_id: lead.id,
-            status: "sent" as const,
-            error: null,
-            sms_sid: sms.sid,
-          };
-        } catch (error) {
-          return {
-            lead_id: lead.id,
-            status: "failed" as const,
-            error: error instanceof Error ? error.message : "send failed",
-            sms_sid: null,
-          };
-        }
-      });
-
-      const results = await Promise.allSettled(promises);
-
-      for (const result of results) {
-        if (result.status === "fulfilled") {
-          const row = result.value;
-          notificationRows.push({
-            lead_id: row.lead_id,
-            campaign_id: campaign.id,
-            sms_sid: row.sms_sid,
-            status: row.status,
-            error: row.error,
-          });
-
-          if (row.status === "sent") {
-            sentCount += 1;
-            sentLeadIds.push(row.lead_id);
-          } else if (row.status === "skipped") {
-            skippedCount += 1;
-          } else if (row.status === "failed") {
-            failedCount += 1;
-          }
         } else {
+          try {
+            const sms = await sendSms(lead.phone, messageTemplate);
+            row = {
+              lead_id: lead.id,
+              status: "sent" as const,
+              error: null,
+              sms_sid: sms.sid,
+            };
+          } catch (error) {
+            row = {
+              lead_id: lead.id,
+              status: "failed" as const,
+              error: error instanceof Error ? error.message : "send failed",
+              sms_sid: null,
+            };
+          }
+        }
+
+        notificationRows.push({
+          lead_id: row.lead_id,
+          campaign_id: campaign.id,
+          sms_sid: row.sms_sid,
+          status: row.status,
+          error: row.error,
+        });
+
+        if (row.status === "sent") {
+          sentCount += 1;
+          sentLeadIds.push(row.lead_id);
+        } else if (row.status === "skipped") {
+          skippedCount += 1;
+        } else if (row.status === "failed") {
           failedCount += 1;
         }
       }
-    }
+    };
+
+    const workers = Array.from(
+      { length: Math.min(CONCURRENCY_LIMIT, leads.length) },
+      () => worker(),
+    );
+    await Promise.all(workers);
 
     if (notificationRows.length > 0) {
       const { error: notificationsError } = await supabase
