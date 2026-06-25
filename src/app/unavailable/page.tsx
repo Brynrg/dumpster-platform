@@ -121,7 +121,6 @@ export default function UnavailablePage() {
         created_at: new Date().toISOString(),
       });
       localStorage.setItem("lead_queue_v1", JSON.stringify(queue));
-      console.info("Lead API failed; stored lead in localStorage queue.");
       setSuccess(true);
     }
   }
