@@ -1,0 +1,13 @@
+🎯 What
+Removed a redundant `console.info` statement from the unavailable page (`src/app/unavailable/page.tsx`).
+
+💡 Why
+This improves the readability of logs in the browser console by reducing purely informational noise that adds no real runtime value for users or developers investigating issues.
+
+✅ Verification
+- Ensured the `console.info` statement was correctly deleted.
+- Ran `npm run lint` and `npm run build` with no new errors introduced.
+- Test suite passing (`npm run test`).
+
+✨ Result
+A cleaner browser console output on the unavailable page without breaking any existing business logic or tracking.
