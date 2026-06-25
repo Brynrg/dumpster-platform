@@ -1,0 +1,5 @@
+🧪 [testing improvement] Add tests for citation API
+
+🎯 **What:** Missing integration/unit tests for the citation API route (POST /api/admin/seo/citation) and fixed any types in testing files.
+📊 **Coverage:** Added tests covering unauthorized access, invalid JSON payloads, missing/invalid required fields (market, provider, status), database update failures, database upsert failures, successful updates, and successful upserts.
+✨ **Result:** Improved test coverage for the citation API, ensuring robust handling of both valid and invalid requests and interactions with the Supabase database.
