@@ -1,5 +1,6 @@
 import { vi, describe, beforeEach, afterEach, it, expect, Mock } from "vitest";
 import { POST } from "./route";
+import type { NextRequest } from "next/server";
 import { ADMIN_SESSION_COOKIE, createAdminSession } from "@/lib/adminSession";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
@@ -16,7 +17,7 @@ function createMockRequest(payload: unknown, token?: string) {
         name === ADMIN_SESSION_COOKIE && token ? { value: token } : undefined,
     },
     json: async () => payload,
-  } as unknown as Request;
+  } as unknown as NextRequest;
 }
 
 describe("POST /api/admin/seo/review", () => {
@@ -43,7 +44,7 @@ describe("POST /api/admin/seo/review", () => {
 
   it("should return 401 if unauthorized", async () => {
     const mockRequest = createMockRequest({});
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(401);
     const data = await response.json();
     expect(data).toEqual({ ok: false, error: "Unauthorized." });
@@ -59,9 +60,9 @@ describe("POST /api/admin/seo/review", () => {
       json: async () => {
         throw new Error("Unexpected end of JSON input");
       },
-    } as unknown as Request;
+    } as unknown as NextRequest;
 
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data).toEqual({ ok: false, error: "Invalid JSON payload." });
@@ -70,7 +71,7 @@ describe("POST /api/admin/seo/review", () => {
   it("should return 400 if market is invalid", async () => {
     const token = await createAdminSession();
     const mockRequest = createMockRequest({ market: "invalid-market" }, token);
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data).toEqual({ ok: false, error: "Invalid market." });
@@ -82,7 +83,7 @@ describe("POST /api/admin/seo/review", () => {
       { market: "tx-spring", channel: "pigeon" },
       token,
     );
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data).toEqual({ ok: false, error: "Invalid channel." });
@@ -94,7 +95,7 @@ describe("POST /api/admin/seo/review", () => {
       { market: "tx-spring", status: "in-progress" },
       token,
     );
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data).toEqual({ ok: false, error: "Invalid status." });
@@ -120,7 +121,7 @@ describe("POST /api/admin/seo/review", () => {
       error: null,
     });
 
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual({ ok: true, review: mockReviewData });
@@ -147,7 +148,7 @@ describe("POST /api/admin/seo/review", () => {
       error: new Error("DB Error"),
     });
 
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(500);
     const data = await response.json();
     expect(data).toEqual({
@@ -169,7 +170,7 @@ describe("POST /api/admin/seo/review", () => {
       error: null,
     });
 
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual({ ok: true, review: mockReviewData });
@@ -194,7 +195,7 @@ describe("POST /api/admin/seo/review", () => {
       error: new Error("DB Error"),
     });
 
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(500);
     const data = await response.json();
     expect(data).toEqual({
@@ -214,7 +215,7 @@ describe("POST /api/admin/seo/review", () => {
       throw new Error("Unexpected explosion");
     });
 
-    const response = await POST(mockRequest as unknown as Request);
+    const response = await POST(mockRequest as unknown as NextRequest);
     expect(response.status).toBe(500);
     const data = await response.json();
     expect(data).toEqual({ ok: false, error: "Unexpected explosion" });
