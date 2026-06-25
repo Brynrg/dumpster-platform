@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { isSmsEnabled, normalizePhone, sendSms } from "@/lib/twilio/server";
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
         normalizedPhone,
         "Request received — we’ll text you when availability opens in your area. Reply STOP to opt out.",
       ).catch((smsError) => {
-        console.error("Lead confirmation SMS failed", smsError);
+        logger.error("Lead confirmation SMS failed", smsError);
       });
     }
 
