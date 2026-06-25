@@ -22,19 +22,32 @@ export async function seedDisposalData(): Promise<{
   let facilitiesCount = 0;
   let ratesCount = 0;
 
-  for (const facility of facilitiesSeed) {
-    const address = facility.address1 || "";
-    const { data: existingData, error: existingError } = await supabase
+  const markets = Array.from(new Set(facilitiesSeed.map((f) => f.market)));
+  const { data: existingFacilitiesData, error: existingFacilitiesError } =
+    await supabase
       .from("disposal_facilities")
       .select("id,market,name,address1")
-      .eq("market", facility.market)
-      .eq("name", facility.name)
-      .eq("address1", address)
-      .maybeSingle();
+      .in("market", markets);
 
-    if (existingError) {
-      throw new Error(`Failed to query facility "${facility.name}": ${existingError.message}`);
-    }
+  if (existingFacilitiesError) {
+    throw new Error(
+      `Failed to query existing facilities: ${existingFacilitiesError.message}`,
+    );
+  }
+
+  const existingFacilityMap = new Map<string, FacilityRow>();
+  for (const row of existingFacilitiesData || []) {
+    existingFacilityMap.set(
+      `${row.market}::${row.name}::${row.address1 || ""}`,
+      row as FacilityRow,
+    );
+  }
+
+  for (const facility of facilitiesSeed) {
+    const address = facility.address1 || "";
+    const existingData = existingFacilityMap.get(
+      `${facility.market}::${facility.name}::${address}`,
+    );
 
     let facilityId: string;
     if (existingData) {
@@ -90,27 +103,38 @@ export async function seedDisposalData(): Promise<{
     facilityIdByKey.set(`${facility.market}::${facility.name}`, facilityId);
   }
 
+  const facilityIds = Array.from(new Set(facilityIdByKey.values()));
+  const { data: existingRatesData, error: existingRatesError } = await supabase
+    .from("disposal_rates")
+    .select("id,facility_id,material_category,unit,effective_date")
+    .in("facility_id", facilityIds);
+
+  if (existingRatesError) {
+    throw new Error(
+      `Failed to query existing rates: ${existingRatesError.message}`,
+    );
+  }
+
+  const existingRateMap = new Map<string, RateRow>();
+  for (const row of existingRatesData || []) {
+    existingRateMap.set(
+      `${row.facility_id}::${row.material_category}::${row.unit}::${row.effective_date || null}`,
+      row as RateRow,
+    );
+  }
+
   for (const rate of ratesSeed) {
-    const facilityId = facilityIdByKey.get(`${rate.market}::${rate.facility_name}`);
+    const facilityId = facilityIdByKey.get(
+      `${rate.market}::${rate.facility_name}`,
+    );
     if (!facilityId) {
       continue;
     }
 
     const effectiveDate = rate.effective_date || null;
-    const { data: existingData, error: existingError } = await supabase
-      .from("disposal_rates")
-      .select("id")
-      .eq("facility_id", facilityId)
-      .eq("material_category", rate.material_category)
-      .eq("unit", rate.unit)
-      .eq("effective_date", effectiveDate)
-      .maybeSingle();
-
-    if (existingError) {
-      throw new Error(
-        `Failed to query rate "${rate.material_category}" for "${rate.facility_name}": ${existingError.message}`,
-      );
-    }
+    const existingData = existingRateMap.get(
+      `${facilityId}::${rate.material_category}::${rate.unit}::${effectiveDate}`,
+    );
 
     if (existingData) {
       const existing = existingData as RateRow;
@@ -129,15 +153,17 @@ export async function seedDisposalData(): Promise<{
         );
       }
     } else {
-      const { error: insertError } = await supabase.from("disposal_rates").insert({
-        facility_id: facilityId,
-        material_category: rate.material_category,
-        price: rate.price,
-        unit: rate.unit,
-        effective_date: effectiveDate,
-        source_url: rate.source_url || null,
-        source_notes: rate.source_notes || null,
-      });
+      const { error: insertError } = await supabase
+        .from("disposal_rates")
+        .insert({
+          facility_id: facilityId,
+          material_category: rate.material_category,
+          price: rate.price,
+          unit: rate.unit,
+          effective_date: effectiveDate,
+          source_url: rate.source_url || null,
+          source_notes: rate.source_notes || null,
+        });
 
       if (insertError) {
         throw new Error(
