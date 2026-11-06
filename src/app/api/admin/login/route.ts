@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!body.token || !timingSafeEqual(body.token, adminToken)) {
+  if (!body.token || !(await timingSafeEqual(body.token, adminToken))) {
     return NextResponse.json(
       { ok: false, error: "Invalid admin token." },
       { status: 401 },

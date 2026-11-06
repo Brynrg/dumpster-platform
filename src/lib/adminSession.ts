@@ -27,8 +27,12 @@ function getSecret(): string {
 function toBase64Url(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  for (let i = 0; i < bytes.length; i++)
+    binary += String.fromCharCode(bytes[i]);
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 async function sign(payload: string): Promise<string> {
@@ -39,16 +43,27 @@ async function sign(payload: string): Promise<string> {
     false,
     ["sign"],
   );
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(payload),
+  );
   return toBase64Url(signature);
 }
 
-// Length-then-XOR constant-time comparison: avoids leaking how many leading
-// characters of a forged signature/token matched via response timing.
-export function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
+// Hash both strings and compare hashes in constant time to avoid length leaks
+// and timing attacks.
+export async function timingSafeEqual(a: string, b: string): Promise<boolean> {
+  const aHash = await crypto.subtle.digest("SHA-256", encoder.encode(a));
+  const bHash = await crypto.subtle.digest("SHA-256", encoder.encode(b));
+
+  const aBytes = new Uint8Array(aHash);
+  const bBytes = new Uint8Array(bHash);
+
+  if (aBytes.length !== bBytes.length) return false;
+
   let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
   return diff === 0;
 }
 
@@ -59,7 +74,9 @@ export async function createAdminSession(): Promise<string> {
 }
 
 /** True only for an authentic, unexpired token. */
-export async function verifyAdminSession(token: string | undefined): Promise<boolean> {
+export async function verifyAdminSession(
+  token: string | undefined,
+): Promise<boolean> {
   if (!token) return false;
   const dot = token.indexOf(".");
   if (dot <= 0) return false;
@@ -67,7 +84,7 @@ export async function verifyAdminSession(token: string | undefined): Promise<boo
   const signature = token.slice(dot + 1);
   if (!/^\d+$/.test(exp) || !signature) return false;
   const expected = await sign(exp);
-  if (!timingSafeEqual(signature, expected)) return false;
+  if (!(await timingSafeEqual(signature, expected))) return false;
   return Number(exp) > Date.now();
 }
 

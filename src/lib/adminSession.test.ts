@@ -14,7 +14,9 @@ function cookieReq(value: string | undefined) {
   return {
     cookies: {
       get: (name: string) =>
-        name === ADMIN_SESSION_COOKIE && value !== undefined ? { value } : undefined,
+        name === ADMIN_SESSION_COOKIE && value !== undefined
+          ? { value }
+          : undefined,
     },
   };
 }
@@ -76,10 +78,10 @@ describe("adminSession", () => {
     expect(await verifyAdminSession(token)).toBe(false);
   });
 
-  it("timingSafeEqual behaves like equality", () => {
-    expect(timingSafeEqual("abc", "abc")).toBe(true);
-    expect(timingSafeEqual("abc", "abd")).toBe(false);
-    expect(timingSafeEqual("abc", "ab")).toBe(false);
+  it("timingSafeEqual behaves like equality", async () => {
+    expect(await timingSafeEqual("abc", "abc")).toBe(true);
+    expect(await timingSafeEqual("abc", "abd")).toBe(false);
+    expect(await timingSafeEqual("abc", "ab")).toBe(false);
   });
 
   it("throws if the secret is unset or too short", async () => {
